@@ -234,6 +234,7 @@ const Profile = () => {
                   type="text"
                   value={mobile}
                   onChange={(e) => setMobileno(e.target.value)}
+                  className=""
                 />
               </section>
               <section className="flex items-start text-xs lg:text-base lg:items-center flex-col lg:flex-row">
@@ -246,6 +247,7 @@ const Profile = () => {
                   type="text"
                   value={emailpersonal}
                   onChange={(e) => setEmailPersonal(e.target.value)}
+                  className=""
                 />
               </section>
               <section className="flex items-start text-xs md:text-base lg:items-center flex-col lg:flex-row">
@@ -301,6 +303,7 @@ const Profile = () => {
                   type="text"
                   value={volunteeredEvent}
                   onChange={(e) => setVolunteered(e.target.value)}
+                  className=""
                 />
               </section>
               <section className="flex items-start text-xs md:text-base flex-col">
@@ -315,6 +318,7 @@ const Profile = () => {
                   type="text"
                   value={participatedEvent}
                   onChange={(e) => setParticipated(e.target.value)}
+                  className=""
                 />
               </section>
               <div className="w-full flex justify-end">

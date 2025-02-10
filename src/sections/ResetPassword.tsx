@@ -108,6 +108,7 @@ const ResetPassword = () => {
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value.trim())}
+                className=""
               />
               <Input
                 label={"confirmPassword"}
@@ -115,6 +116,7 @@ const ResetPassword = () => {
                 type="password"
                 value={confirmpassword}
                 onChange={(e) => setConfirmPassword(e.target.value.trim())}
+                className=""
               />
               <Button submit={true}>Reset Password</Button>
             </form>

@@ -16,13 +16,13 @@ const Dashboard = () => {
   useEffect(() => {
     // console.log(tabIndex);
   }, [tabIndex]);
-  useEffect(() => {
-    const token = Cookies.get("jwtToken");
-    // console.log("token", token);
-    if (!token) {
-      navigator("/");
-    }
-  }, []);
+  // useEffect(() => {
+  //   const token = Cookies.get("jwtToken");
+  //   // console.log("token", token);
+  //   if (!token) {
+  //     navigator("/");
+  //   }
+  // }, []);
   return (
     <div className="w-full h-full flex flex-col md:flex-row justify-center items-center p-4 md:p-12">
       <Navbar />

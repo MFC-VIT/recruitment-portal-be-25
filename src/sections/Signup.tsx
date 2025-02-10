@@ -145,7 +145,7 @@ const Signup: React.FC = () => {
     }
   };
   return (
-    <div className="w-full flex-grow h-[100vh] md:h-full relative flex justify-center items-center text-dark  p-4 md:p-12">
+    <div className="w-full flex-grow h-[100vh] md:h-full relative flex justify-center items-center text-dark  p-4 ">
       {openToast && (
         <CustomToast
           setToast={setOpenToast}
@@ -157,111 +157,135 @@ const Signup: React.FC = () => {
         />
       )}
       <BoundingBox>
-        <div className="w-full h-full relative z-[100] flex justify-between flex-col md:flex-row">
-          <div className="heading text-center md:text-left">
-            <h1 className="text-[2rem] md:text-[2.6rem] text-prime">
+        <div className="w-full h-full relative z-[100] flex flex-col md:flex-row justify-between">
+          <div className="signup-info text-center md:text-left  flex-col justify-center hidden md:inline-flex items-center md:items-start p-6 md:p-8 md:mt-0 ">
+            <h1 className="text-[2.2rem] md:text-[3rem] font-bold text-prime tracking-wide hidden md:inline-flex">
               MOZILLA FIREFOX
             </h1>
-            <span className="text-light text-base md:text-2xl">
+            <span className="text-light text-lg md:text-2xl mt-2 md:mt-4 hidden md:inline-flex">
               IS RECRUITING
             </span>
-            <div className="mt-6 text-xs md:text-base">
-              <div className="text-white -mb-4">Have An Account ??</div>
-            </div>
-            <div className="mt-6 text-xs md:text-base">
-              <NavLink className="nes-btn" to="/">
-                Login In &rarr;
+            <div className="mt-6 text-sm md:text-base hidden md:block">
+              <div className="text-white mb-2 md:mb-4">Already have an account?</div>
+              <NavLink
+                className="nes-btn bg-prime hover:bg-orange-600 text-white px-4 py-2 rounded transition-all duration-300"
+                to="/"
+              >
+                Login Here &rarr;
               </NavLink>
             </div>
-            <section className="icon-list flex gap-8 mt-8 w-full justify-center md:justify-start">
-              <a href="https://www.instagram.com/mfc_vit">
-                <i className="nes-icon instagram  md:is-medium">/</i>
+            <section className="icon-list  gap-4 mt-6 justify-center hidden md:inline-flex">
+              <a
+                href="https://www.instagram.com/mfc_vit"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="hover:scale-110 transition-transform duration-300"
+              >
+                <i className="nes-icon instagram is-medium"></i>
               </a>
-              <a href="mailto:mozillafirefox@vit.ac.in">
-                <i className="nes-icon gmail md:is-medium"></i>
+              <a
+                href="mailto:mozillafirefox@vit.ac.in"
+                className="hover:scale-110 transition-transform duration-300"
+              >
+                <i className="nes-icon gmail is-medium"></i>
               </a>
-              <a href="https://www.linkedin.com/company/mfcvit?originalSubdomain=in">
-                <i className="nes-icon linkedin md:is-medium"></i>
+              <a
+                href="https://www.linkedin.com/company/mfcvit?originalSubdomain=in"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="hover:scale-110 transition-transform duration-300"
+              >
+                <i className="nes-icon linkedin is-medium"></i>
               </a>
             </section>
           </div>
-          <div className="flex-grow h-full p-4 md:p-8 mt-4 md:mt-0">
+
+          <div className="flex-grow  text-white rounded-lg shadow-lg p-10 mt-0 md:mt-0">
+            <div className="text-center block md:hidden">
+              <h1 className="text-2xl sm:text-3xl md:text-[3rem] font-bold text-prime tracking-wide">
+                MOZILLA FIREFOX
+              </h1>
+              <span className="text-base sm:text-4xl text-light mt-2">IS RECRUITING</span>
+            </div>
+
+            <div className="text-center mt-6 block md:hidden">
+              <h2 className="text-lg sm:text-xl font-bold text-white">SIGNUP PAGE</h2>
+            </div>
+
             <form
-              className="flex flex-col gap-3 md:gap-6 w-full md:w-[60%] mx-auto"
+              className="flex flex-col gap-8 md:gap-6 w-full mx-auto mt-4 md:mt-0"
               onSubmit={handleSignup}
             >
               <Input
-                label={"name"}
-                placeholder="Name"
+                label={"Name"}
+                placeholder="Enter your name"
                 type="text"
                 value={username}
-                onChange={(e) => {
-                  setUsername(e.target.value);
-                }}
+                onChange={(e) => setUsername(e.target.value)}
                 required={true}
+                className=" text-black"
               />
               {formErrors.name && (
-                <div className="text-xs -mt-4 text-prime">
-                  {formErrors.name}
-                </div>
+                <div className="text-xs text-prime">{formErrors.name}</div>
               )}
+
               <Input
-                label={"email"}
-                placeholder="Vit-Email"
-                type="text"
+                label={"Email"}
+                placeholder="Enter your VIT Email"
+                type="email"
                 value={email}
-                onChange={(e) => {
-                  setEmail(e.target.value.trim().toLowerCase());
-                }}
+                onChange={(e) => setEmail(e.target.value.trim().toLowerCase())}
                 required={true}
+                className=" text-black"
               />
               {formErrors.email && (
-                <div className="text-xs -mt-4 text-prime">
-                  {formErrors.email}
-                </div>
+                <div className="text-xs text-prime">{formErrors.email}</div>
               )}
+
               <Input
-                label={"regno"}
-                placeholder="Registration Number"
+                label={"Registration Number"}
+                placeholder="Enter your Registration Number"
                 type="text"
                 value={regno}
-                onChange={(e) => {
-                  setRegno(e.target.value.toUpperCase());
-                }}
+                onChange={(e) => setRegno(e.target.value.toUpperCase())}
                 required={true}
+                className=" text-black"
               />
               {formErrors.registerNumber && (
-                <div className="text-xs -mt-4 text-prime">
-                  {formErrors.registerNumber}
-                </div>
+                <div className="text-xs text-prime">{formErrors.registerNumber}</div>
               )}
+
               <Input
-                label={"password"}
-                placeholder="Password"
+                label={"Password"}
+                placeholder="Enter a secure password"
                 type="password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value.trim())}
                 required={true}
+                className=" text-black"
               />
               {formErrors.password && (
-                <div className="text-xs -mt-4 text-prime">
-                  {formErrors.password}
-                </div>
+                <div className="text-xs text-prime">{formErrors.password}</div>
               )}
+
               <Input
-                label={"confirm password"}
-                placeholder="Confirm Password"
+                label={"Confirm Password"}
+                placeholder="Re-enter your password"
                 type="password"
                 value={confirmpassword}
                 onChange={(e) => setConfirmPassword(e.target.value.trim())}
                 required={true}
+                className=" text-black"
               />
               {formErrors.confirmPassword && (
-                <div className="text-xs -mt-4 text-prime">
-                  {formErrors.confirmPassword}
-                </div>
+                <div className="text-xs text-prime">{formErrors.confirmPassword}</div>
               )}
-              <Button submit={true} disabled={mutex}>
+
+              <Button
+                submit={true}
+                disabled={mutex}
+                className="bg-prime hover:bg-orange-600 text-white font-bold py-3 rounded transition-all duration-300"
+              >
                 {mutex === true ? (
                   <div className="flex items-center justify-center gap-4">
                     <span>Loading</span>
@@ -276,13 +300,52 @@ const Signup: React.FC = () => {
                 )}
               </Button>
             </form>
+
+
+            <div className="mt-8 block md:hidden text-center">
+              <div className="text-white mb-4">Already have an account?</div>
+              <NavLink
+                className="nes-btn bg-prime hover:bg-orange-600 text-white px-4 py-2 rounded block mx-auto w-2/3 text-center"
+                to="/"
+              >
+                Login Here &rarr;
+              </NavLink>
+              <section className="icon-list flex gap-4 mt-6 justify-center">
+                <a
+                  href="https://www.instagram.com/mfc_vit"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="hover:scale-110 transition-transform duration-300"
+                >
+                  <i className="nes-icon instagram is-medium"></i>
+                </a>
+                <a
+                  href="mailto:mozillafirefox@vit.ac.in"
+                  className="hover:scale-110 transition-transform duration-300"
+                >
+                  <i className="nes-icon gmail is-medium"></i>
+                </a>
+                <a
+                  href="https://www.linkedin.com/company/mfcvit?originalSubdomain=in"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="hover:scale-110 transition-transform duration-300"
+                >
+                  <i className="nes-icon linkedin is-medium"></i>
+                </a>
+              </section>
+            </div>
+
+            <div className="mt-8 block">
+
+            </div>
           </div>
         </div>
-        {/* <img
+        <img
           src="/background.png"
           alt=""
-          className="hidden md:block absolute bottom-0 invert brightness-[50%] left-0 scale-95"
-        /> */}
+          className="w-full hidden md:block absolute bottom-0 invert brightness-[50%] left-0"
+        />
         <div className="fixed bottom-0 w-full md:hidden opacity-75">
           <img
             src="/empty-bg.png"

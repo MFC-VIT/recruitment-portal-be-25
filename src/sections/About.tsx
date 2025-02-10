@@ -4,7 +4,7 @@ const About = () => {
   return (
     <div className="w-full min-h-screen h-full flex flex-col md:flex-row justify-center items-center p-4 md:p-12">
       <Navbar />
-      <BoundingBox>
+      <BoundingBox className="relative">
         <div className="w-full h-full text-center relative">
           <h1
             className="text-[1.5rem] md:text-[3rem] text-prime"
@@ -40,7 +40,7 @@ const About = () => {
           <img
             src="/background.png"
             alt=""
-            className="hidden lg:block absolute -bottom-12 invert brightness-[50%] left-1/2 -translate-x-1/2 scale-x-75 scale-y-90"
+            className="hidden lg:block absolute bottom-0 left-0 w-full object-cover h-auto invert brightness-[40%]"
           />
         </div>
       </BoundingBox>

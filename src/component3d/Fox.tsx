@@ -55,7 +55,8 @@ const Fox = (props: JSX.IntrinsicElements["group"]) => {
   }, [animationIndex, actions, names]);
 
   useEffect(() => {
-    let timeout: NodeJS.Timeout | null;
+    let timeout: NodeJS.Timeout | null = null;
+
     if (group.current && animationIndex === 7) {
       const onCompleteHandler = () => {
         if (group.current) {
@@ -68,7 +69,7 @@ const Fox = (props: JSX.IntrinsicElements["group"]) => {
         actions[names[animationIndex]]?.play();
         actions[names[animationIndex]]?.fadeOut(0.5);
 
-        const timeout = setTimeout(() => {
+        timeout = setTimeout(() => {
           actions[names[animationIndex]]?.fadeOut(1);
           setTimeout(() => {
             actions[names[animationIndex]]?.stop();
@@ -76,7 +77,7 @@ const Fox = (props: JSX.IntrinsicElements["group"]) => {
         }, 500);
 
         return () => {
-          clearTimeout(timeout);
+          if (timeout) clearTimeout(timeout);
           actions[names[animationIndex]]?.fadeOut(0.5);
         };
       };
@@ -94,15 +95,17 @@ const Fox = (props: JSX.IntrinsicElements["group"]) => {
         onComplete: onCompleteHandler as unknown as gsap.Callback,
       });
     }
-    // clearTimeout(timeout);
+
     return () => {
       if (timeout) clearTimeout(timeout);
       actions[names[animationIndex]]?.fadeOut(0.5);
     };
   }, [animationIndex, actions, names, setAnimationIndex]);
 
+
   useEffect(() => {
-    let timeout: NodeJS.Timeout | null;
+    let timeout: NodeJS.Timeout | null = null;
+
     if (group.current && animationIndex === 5) {
       const onCompleteHandler = () => {
         if (group.current) {
@@ -128,7 +131,7 @@ const Fox = (props: JSX.IntrinsicElements["group"]) => {
         actions[names[animationIndex]]?.play();
         actions[names[animationIndex]]?.fadeOut(0.5);
 
-        const timeout = setTimeout(() => {
+        timeout = setTimeout(() => {
           actions[names[animationIndex]]?.fadeOut(1);
           setTimeout(() => {
             actions[names[animationIndex]]?.stop();
@@ -136,7 +139,7 @@ const Fox = (props: JSX.IntrinsicElements["group"]) => {
         }, 500);
 
         return () => {
-          clearTimeout(timeout);
+          if (timeout) clearTimeout(timeout);
 
           if (actions[names[animationIndex]]) {
             actions[names[animationIndex]]?.fadeOut(0.5);
@@ -157,6 +160,7 @@ const Fox = (props: JSX.IntrinsicElements["group"]) => {
         onComplete: onCompleteHandler as unknown as gsap.Callback,
       });
     }
+
     return () => {
       if (timeout) clearTimeout(timeout);
       actions[names[animationIndex]]?.fadeOut(0.5);

@@ -1,6 +1,6 @@
 import axios from "axios";
 import Cookies from "js-cookie";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import { NavLink, useNavigate } from "react-router-dom";
 import secureLocalStorage from "react-secure-storage";
 import { toast } from "react-toastify";
@@ -13,124 +13,111 @@ import Scene3d from "../components/Scene3d";
 import { useCharacterAnimations } from "../context/CharAnimation";
 import { useTabStore } from "../store";
 
+
 const Landing = () => {
   const [openToast, setOpenToast] = useState(false);
   const [toastContent, setToastContent] = useState<ToastContent>({});
+  const [showComponents, setShowComponents] = useState(false);
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [error, setError] = useState(false);
+  const [isSceneVisible, setIsSceneVisible] = useState(false);
+
   const { isPlayButton } = useCharacterAnimations();
   const { tabIndex, setTabIndex } = useTabStore();
-  const [showComponents, setShowComponents] = useState(false);
-  const [password, setPassword] = useState("");
-  const [email, setEmail] = useState("");
-  const [error, setError] = useState(false);
   const navigate = useNavigate();
-  // console.log(error);
 
   useEffect(() => {
-    let timeout: NodeJS.Timeout;
     if (isPlayButton) {
-      timeout = setTimeout(() => {
-        setShowComponents(true);
-      }, 3500);
+      const timeout = setTimeout(() => setShowComponents(true), 3500);
+      return () => clearTimeout(timeout);
     }
-    return () => {
-      clearTimeout(timeout);
-    };
   }, [isPlayButton]);
+
+  const handlePlayBtnClick = () => {
+    setIsSceneVisible(true); 
+  };
+
+  const validateInputs = useCallback(() => {
+    const trimmedEmail = email.trim();
+    const trimmedPassword = password.trim();
+
+    if (!trimmedEmail || !trimmedPassword) {
+      setToastContent({
+        message: "Email and password cannot be empty.",
+        type: "error",
+      });
+      setOpenToast(true);
+      return false;
+    }
+    return { email: trimmedEmail, password: trimmedPassword };
+  }, [email, password]);
 
   const handleLogin = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    const trimmedEmail = email.trim();
-    const trimmedPassword = password.trim();
-    // console.log("Trimmed Email:", trimmedEmail);
-    // console.log("Trimmed Password:", trimmedPassword);
-    const formData = {
-      email,
-      password,
-    };
+
+    const inputs = validateInputs();
+    if (!inputs) return;
+
     try {
       const response = await axios.post(
         `${import.meta.env.VITE_BASE_URL}/auth/login`,
-        formData
+        inputs
       );
+
       if (response.data.token) {
-        document.cookie = "jwtToken=" + response.data.token;
-        setOpenToast(true);
-        setToastContent({ message: "OK" });
-        toast.success("OK", {
-          // className: "custom-bg",
+        Cookies.set("jwtToken", response.data.token, { secure: true });
+
+        toast.success("Login successful", {
           autoClose: 3000,
           theme: "dark",
         });
+
         secureLocalStorage.setItem("id", response.data.id);
         secureLocalStorage.setItem("name", response.data.username);
         secureLocalStorage.setItem("email", response.data.email);
-        fetchUserDetails(response.data.id);
-        // console.log("response.data.id", response.data.id);
-      }
-      if (response.data.error) {
-        setToastContent({
-          message: `${response.data.error}`,
-          type: "error",
-        });
-      }
 
-      setError(false);
-    } catch (error) {
-      // console.log(error);
-      setOpenToast(true);
+        await fetchUserDetails(response.data.id);
+      } else if (response.data.error) {
+        setToastContent({ message: response.data.error, type: "error" });
+        setOpenToast(true);
+      }
+    } catch (err) {
+      console.error("Login error:", err);
       setToastContent({
         message: "Invalid Username or Password",
         type: "error",
       });
-      // toast.error("Invalid Username or Password", {
-      //   className: "custom-bg-error",
-      //   autoClose: 3000,
-      //   theme: "dark",
-      // });
-      setError(true);
+      setOpenToast(true);
     }
   };
 
   const fetchUserDetails = async (userId: string) => {
     try {
-      const id = secureLocalStorage.getItem("id");
-
-      if (!id) {
-        throw new Error("User id not found in secureLocalStorage");
-      }
       const token = Cookies.get("jwtToken");
+      if (!token) throw new Error("JWT token not found");
+
       const response = await axios.get(
         `${import.meta.env.VITE_BASE_URL}/user/user/${userId}`,
         {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
+          headers: { Authorization: `Bearer ${token}` },
         }
       );
-      // console.log(response.data);
+
       secureLocalStorage.setItem("userDetails", JSON.stringify(response.data));
-      const userDetailsString = secureLocalStorage.getItem("userDetails");
-      if (typeof userDetailsString === "string") {
-        const userDetails = JSON.parse(userDetailsString);
-        const isProfileDone = userDetails.isProfileDone;
-        // console.log("Is Profile Done:", isProfileDone);
-        if (isProfileDone) {
-          setTabIndex(1);
-        } else {
-          setTabIndex(0);
-          // console.log("tabIndex", tabIndex);
-        }
-        navigate("/dashboard");
-      } else {
-        console.error("User details not found in secureLocalStorage");
-      }
-    } catch (error) {
-      console.log(error);
+
+      const isProfileDone = response.data?.isProfileDone;
+      setTabIndex(isProfileDone ? 1 : 0);
+
+      navigate("/dashboard");
+    } catch (err) {
+      console.error("Error fetching user details:", err);
     }
   };
 
   return (
-    <div className="w-full flex-grow h-[100vh] md:h-full relative flex justify-center items-center text-dark  p-4 md:p-12">
+    <div className="w-full flex-grow h-[100vh] md:h-full relative flex justify-center items-center text-dark p-4 md:p-12">
       {openToast && (
         <CustomToast
           setToast={setOpenToast}
@@ -141,121 +128,114 @@ const Landing = () => {
           duration={toastContent.duration}
         />
       )}
+
       <BoundingBox>
-        <div className="w-full h-full  relative z-[100] flex justify-between flex-col lg:flex-row">
-          {/* <img
-  src="/sky_muchbetter.png"
-  alt=""
-  className="hidden md:block absolute top-[-25%] left-1/2 transform -translate-x-1/2 w-full h-full object-contain z-50"
-  style={{
-    filter: "invert(50%) brightness(50%)",
-    maxWidth: "80vw", // Adjust the maximum width based on viewport width
-    maxHeight: "80vh", // Adjust the maximum height based on viewport height
-  }}
-/> */}
-          <div className="heading text-center md:text-left z-[100]">
-            <h1 className="text-[2rem] md:text-[2.6rem] text-prime">
-              MOZILLA FIREFOX
-            </h1>
-            <span className="text-light text-base md:text-2xl z-[100]">
-              IS RECRUITING
-            </span>
+      <div className="w-full h-full relative z-[100] flex justify-center items-center flex-col lg:flex-row">
+      <div className="heading text-center md:text-left flex flex-col items-center lg:items-start z-[100]">
+        <div className={`flex flex-col items-center lg:items-start transition-all duration-500 ease-in-out ${isPlayButton ? 'text-[2rem]' : 'md:text-[3rem]'}`}>
+          <h1 className={`text-prime font-bold leading-tight whitespace-pre-line transition-all duration-500 ease-in-out lg:mt-24 
+            ${isPlayButton ? 'text-3xl sm:text-4xl md:text-3xl lg:text-3xl lg:mt-2 ' : 'text-3xl sm:text-3xl md:text-3xl lg:text-[2.6rem] lg:mt-40'}`}>
+            {!isPlayButton ? ( 
+          <>
+            <span className="lg:block mb-8">MOZILLA</span>
+            <span className="lg:block"> FIREFOX</span>
+          </>
+        ) : (
+          "MOZILLA FIREFOX"
+        )}
+          </h1>
+
+          <div className="text-light text-base md:text-xl sm:text-3xl lg:mt-4 block text-center  lg:text-left">
+            IS RECRUITING
+          </div>
+        </div>
             <div className="hidden lg:block">
               <div
                 className={
                   isPlayButton
-                    ? "animate-fadeOut opacity-0"
-                    : " text-prime text-base lg:text-2xl mt-10 opacity-100"
+                    ? "text-prime text-base lg:text-2xl opacity-0 transition-opacity duration-1000 ease-in-out delay-200"
+                    : "text-prime text-base lg:text-2xl mt-10 opacity-100"
                 }
               >
                 Wanna play with Mr.Fox Jr??
               </div>
-              <div className="mt-0 text-xs md:text-base">
-                {showComponents && isPlayButton && (
-                  <>
-                    <div className="h-[55vh] pb-[15vh] w-[100%]">
-                      <Scene3d />
-                    </div>
-                    <PlayBtn />
-                  </>
-                )}
-                <PlayBtn />
+              <div className="relative w-[95%] h-[55vh] pb-[15vh] flex items-center justify-center">
+                {!isPlayButton && <PlayBtn />}
+                {isPlayButton && <Scene3d />}
               </div>
             </div>
           </div>
-          <div className="flex-grow h-full p-4 lg:p-8 mt-4 md:mt-0 z-[100]">
+
+          <div className=" p-4 lg:p-8 mt-4 mb-4 md:mt-0 max-w-full max-h-full z-[100]">
             <form
-              className="form-container flex flex-col mt-12 lg:mt-0 gap-3 md:gap-6 w-full lg:w-[60%] mx-auto"
+              className="form-container flex flex-col mt-4 lg:mt-0 gap-3 md:gap-6 w-full lg:w-[60%] mx-auto shadow-lg rounded-lg"
               onSubmit={handleLogin}
             >
               <Input
                 label={"email"}
-                placeholder="Vit-Email"
+                placeholder="VIT Email"
                 type="text"
                 value={email}
-                onChange={(e) => setEmail(e.target.value.trim().toLowerCase())}
+                onChange={(e) =>
+                  setEmail(e.target.value.trim().toLowerCase())
+                }
+                className="rounded-md border-gray-300 focus:ring-2 focus:ring-blue-500 dark:border-gray-700 dark:focus:ring-blue-400"
               />
-              <Input
-                label={"password"}
-                placeholder="Password"
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value.trim())}
-              />
-              <Button submit={true}>Sign In</Button>
+
+              <div className="relative">
+                <Input
+                  label={"password"}
+                  placeholder="Password"
+                  type={showPassword ? "text" : "password"}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value.trim())}
+                  className="rounded-md border-gray-300 focus:ring-2 focus:ring-blue-500 dark:border-gray-700 dark:focus:ring-blue-400"
+                />
+                {password && (
+                  <button
+                    type="button"
+                    className="absolute right-3 top-3 text-gray-600 hover:text-gray-800"
+                    onClick={() => setShowPassword((prev) => !prev)}
+                    aria-label={showPassword ? "Hide Password" : "Show Password"}
+                  >
+                  </button>
+                )}
+              </div>
+
+              <Button
+                submit={true}
+                className="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-md transition-all duration-300"
+              >
+                Sign In
+              </Button>
+
               <NavLink
                 to="/forgotpassword"
-                className="text-center text-orange text-sm md:text-base"
+                className="text-center text-sm md:text-base text-blue-600 hover:underline"
               >
-                Forgot Password??
+                Forgot Password?
               </NavLink>
             </form>
 
-            <section className="text-center mt-6 md:mt-4 text-light bg-dark py-0.4 md:py-0.5  lg:w-[60%] mx-auto relative flex flex-col w-[85%]">
-              <p className="text-xs md:text-base mt-2">
+            <section className="text-center mt-3 md:mt-4 w-full lg:w-[60%] mx-auto flex flex-col gap-3  rounded-lg shadow-md">
+              <p className="text-sm md:text-base text-gray-300">
                 Don't have an account?
               </p>
-              <div className="text-black text-sm md:text-lg cursor-pointer w-full bg-prime py-1">
-                <div>
-                  <NavLink to="/signup" className="text-black  ">
-                    Sign Up
-                  </NavLink>
-                </div>
-              </div>
+              <NavLink
+                to="/signup"
+                className="text-white bg-blue-600 py-2 px-4 rounded-md w-auto mx-auto hover:bg-orange-500 hover:text-white transition-all duration-300"
+              >
+                Sign Up
+              </NavLink>
             </section>
           </div>
         </div>
-        <div className="hidden md:hidden h-[40vh] w-full absolute bottom-0 left-0  flex-col gap-4 ">
-          <div
-            className={
-              isPlayButton
-                ? "animate-fadeOut opacity-0"
-                : " text-prime text-base md:text-2xl md:mt-10 opacity-100 text-center"
-            }
-          >
-            Wanna play with Mr.Fox Jr??
-          </div>
-          <div className="mt-6 text-xs md:text-base w-full">
-            {showComponents && isPlayButton && (
-              <>
-                <div className=" w-[100%]">
-                  <Scene3d />
-                </div>
-                <PlayBtn />
-              </>
-            )}
-            <PlayBtn />
-          </div>
-        </div>
-        <div
-          className={`hidden md:block ${
-            isPlayButton ? "animate-fadeOut opacity-0" : "opacity-100"
-          }`}
-        >
+
+        <div className="absolute bottom-0 w-full h-[40vh] left-0">
           <img
             src="/background.png"
             alt=""
-            className="hidden md:block absolute bottom-0 invert brightness-[50%] left-0 scale-95"
+            className = {isPlayButton ? "invert brightness-[40%] opacity-0 transition-opacity duration-1000 ease-in-out delay-200" : "hidden md:block absolute bottom-0 left-0 w-full invert brightness-[40%] "}
           />
           <div className="absolute bottom-0 w-full md:hidden">
             <img
@@ -280,9 +260,11 @@ const Landing = () => {
             />
           </div>
         </div>
+
       </BoundingBox>
     </div>
   );
 };
 
 export default Landing;
+

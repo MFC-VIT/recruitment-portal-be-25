@@ -111,6 +111,7 @@ const ForgotPassword = () => {
                 type="text"
                 value={email}
                 onChange={(e) => setEmail(e.target.value.toLowerCase().trim())}
+                className=""
               />
               {emailError && (
                 <p className="text-red-500 text-sm">{emailError}</p>
@@ -121,6 +122,7 @@ const ForgotPassword = () => {
                 type="text"
                 value={regno}
                 onChange={(e) => setRegno(e.target.value.toUpperCase())}
+                className=""
               />
               {regnoError && (
                 <p className="text-red-500 text-sm">{regnoError}</p>

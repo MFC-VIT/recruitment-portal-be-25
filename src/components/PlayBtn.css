@@ -1,9 +1,18 @@
 .playBtn {
   position: absolute;
-  left: 30%;
-  top: 50%;
-  transform: translateX(-50%) translateY(-50%);
+  top: 25%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 10;
+  cursor: pointer;
+  transition: opacity 0.3s ease-in-out;
 }
+
+.playBtn.hidden {
+  opacity: 0;
+  pointer-events: none;
+}
+
 @media (max-width: 600px) {
   .playBtn {
     left: 50%;
