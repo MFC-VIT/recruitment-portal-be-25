@@ -1,0 +1,35 @@
+.faq {
+    overflow-y: auto;
+    scroll-behavior: smooth;
+    max-height: 80vh;
+}
+
+.faq-item {
+    transition: padding 0.2s ease-in-out, background-color 0.2s ease-in-out;
+}
+
+.faq-question {
+    font-weight: bold;
+}
+
+.faq-answer {
+    display: none;
+    transition: max-height 0.3s ease;
+}
+
+.faq-item[aria-expanded='true'] .faq-answer {
+    display: block;
+}
+
+.faq-icon {
+    font-size: 1.5rem;
+    transition: transform 0.2s ease;
+}
+
+.faq-item[aria-expanded='true'] .faq-icon {
+    transform: rotate(180deg);
+}
+
+.faq-item:hover {
+    background-color: #f9f9f9;
+}

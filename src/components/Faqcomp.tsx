@@ -18,7 +18,7 @@ export default function Faqcomp({ que, ans }: { que: string; ans: string }) {
                 {ans}
               </p>
             </div>
-            <i className="nes-bcrikko  scale-50"></i>
+            <i className="nes-bcrikko scale-50" aria-hidden="true"></i>
           </section>
         </section>
       </section>

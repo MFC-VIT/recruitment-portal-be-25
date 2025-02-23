@@ -36,7 +36,7 @@ const Landing = () => {
   }, [isPlayButton]);
 
   const handlePlayBtnClick = () => {
-    setIsSceneVisible(true); 
+    setIsSceneVisible(true);
   };
 
   const validateInputs = useCallback(() => {
@@ -130,25 +130,25 @@ const Landing = () => {
       )}
 
       <BoundingBox>
-      <div className="w-full h-full relative z-[100] flex justify-center items-center flex-col lg:flex-row">
-      <div className="heading text-center md:text-left flex flex-col items-center lg:items-start z-[100]">
-        <div className={`flex flex-col items-center lg:items-start transition-all duration-500 ease-in-out ${isPlayButton ? 'text-[2rem]' : 'md:text-[3rem]'}`}>
-          <h1 className={`text-prime font-bold leading-tight whitespace-pre-line transition-all duration-500 ease-in-out lg:mt-24 
-            ${isPlayButton ? 'text-3xl sm:text-4xl md:text-3xl lg:text-3xl lg:mt-2 ' : 'text-3xl sm:text-3xl md:text-3xl lg:text-[2.6rem] lg:mt-40'}`}>
-            {!isPlayButton ? ( 
-          <>
-            <span className="lg:block mb-8">MOZILLA</span>
-            <span className="lg:block"> FIREFOX</span>
-          </>
-        ) : (
-          "MOZILLA FIREFOX"
-        )}
-          </h1>
+        <div className="w-full h-full relative z-[100] flex justify-center items-center flex-col lg:flex-row">
+          <div className="heading text-center md:text-left flex flex-col items-center lg:items-start z-[100]">
+            <div className={`flex flex-col items-center lg:items-start transition-all duration-500 ease-in-out ${isPlayButton ? 'text-[2rem]' : 'md:text-[3rem]'}`}>
+              <h1 className={`text-prime font-bold leading-tight whitespace-pre-line transition-all duration-500 ease-in-out lg:mt-24 
+            ${isPlayButton ? 'text-3xl sm:text-4xl md:text-3xl lg:text-3xl lg:mt-[0.4375rem] ' : 'text-3xl sm:text-3xl md:text-3xl lg:text-[2.6rem] lg:mt-40'}`}>
+                {!isPlayButton ? (
+                  <>
+                    <span className="lg:block mb-8">MOZILLA</span>
+                    <span className="lg:block"> FIREFOX</span>
+                  </>
+                ) : (
+                  "MOZILLA FIREFOX"
+                )}
+              </h1>
 
-          <div className="text-light text-base md:text-xl sm:text-3xl lg:mt-4 block text-center  lg:text-left">
-            IS RECRUITING
-          </div>
-        </div>
+              <div className="text-light text-base md:text-xl sm:text-3xl lg:mt-4 block text-center  lg:text-left">
+                IS RECRUITING
+              </div>
+            </div>
             <div className="hidden lg:block">
               <div
                 className={
@@ -231,11 +231,11 @@ const Landing = () => {
           </div>
         </div>
 
-        <div className="absolute bottom-0 w-full h-[40vh] left-0">
+        <div className="absolute bottom-0 w-full left-0">
           <img
             src="/background.png"
             alt=""
-            className = {isPlayButton ? "invert brightness-[40%] opacity-0 transition-opacity duration-1000 ease-in-out delay-200" : "hidden md:block absolute bottom-0 left-0 w-full invert brightness-[40%] "}
+            className={isPlayButton ? "invert brightness-[40%] opacity-0 transition-opacity duration-1000 ease-in-out delay-200" : "hidden md:block absolute bottom-0 left-0 w-full invert brightness-[40%] "}
           />
           <div className="absolute bottom-0 w-full md:hidden">
             <img
