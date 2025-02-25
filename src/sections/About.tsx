@@ -2,9 +2,9 @@ import BoundingBox from "../components/BoundingBox";
 import Navbar from "../components/Navbar";
 const About = () => {
   return (
-    <div className="w-full min-h-screen h-full flex flex-col md:flex-row justify-center items-center p-4 md:p-12">
+    <div className="w-full min-h-screen h-full flex flex-col md:flex-row justify-center items-center p-4 md:p-12 overflow-auto">
       <Navbar />
-      <BoundingBox className="relative">
+      <BoundingBox className="relative  overflow-auto">
         <div className="w-full h-full text-center relative">
           <h1
             className="text-[1.5rem] md:text-[3rem] text-prime"
@@ -12,7 +12,7 @@ const About = () => {
           >
             MOZILLA FIREFOX
           </h1>
-          <div className="nes-container is-rounded is-dark text-[0.7rem] md:text-base text-left md:text-center">
+          <div className="w-full h-full nes-container is-rounded is-dark text-2xl md:text-base text-left md:text-center overflow-auto max-h-[50vh]">
             <p>
               Mozilla Firefox Club - VIT has been a beacon of innovation within
               VIT's student developer community for the last 10 years, boasting
@@ -26,7 +26,7 @@ const About = () => {
               and various other entities
             </p>
           </div>
-          <section className="icon-list flex gap-10 md:gap-8 mt-8 w-full justify-center scale-75 md:scale-100">
+          <section className="icon-list flex gap-10 md:gap-8 mt-8 w-full mb-0 justify-center scale-75 md:scale-100">
             <a href="https://www.instagram.com/mfc_vit">
               <i className="nes-icon instagram is-medium"></i>
             </a>
@@ -37,11 +37,7 @@ const About = () => {
               <i className="nes-icon linkedin is-medium"></i>
             </a>
           </section>
-          <img
-            src="/background.png"
-            alt=""
-            className="hidden lg:block absolute bottom-0 left-0 w-full object-cover h-auto invert brightness-[40%]"
-          />
+          
         </div>
       </BoundingBox>
     </div>

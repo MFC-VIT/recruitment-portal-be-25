@@ -130,7 +130,7 @@ const Landing = () => {
       )}
 
       <BoundingBox>
-        <div className="w-full h-full relative z-[100] flex justify-center items-center flex-col lg:flex-row">
+        <div className="w-full h-full relative z-[100] flex lg:justify-between items-center flex-col lg:flex-row">
           <div className="heading text-center md:text-left flex flex-col items-center lg:items-start z-[100]">
             <div className={`flex flex-col items-center lg:items-start transition-all duration-500 ease-in-out ${isPlayButton ? 'text-[2rem]' : 'md:text-[3rem]'}`}>
               <h1 className={`text-prime font-bold leading-tight whitespace-pre-line transition-all duration-500 ease-in-out lg:mt-24 

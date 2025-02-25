@@ -19,9 +19,9 @@ const ApplicationStatus = () => {
 
   return (
     <div className="w-full profile py-6 flex gap-4 flex-col lg:flex-row">
-      <div className="nes-container with-title is-centered w-full lg:w-[30%] invert">
-        <p className="title">Domains</p>
-        <div className="flex flex-col justify-between h-full gap-4 lg:gap-8">
+      <div className="w-full  nes-container is-rounded is-centered lg:w-[30%] invert">
+      <div className="h-auto mb-4 text-lg">Domains</div>
+        <div className="flex flex-col justify-between lg:gap-4">
           {domains.includes("tech") && (
             <button
               type="button"
@@ -39,7 +39,7 @@ const ApplicationStatus = () => {
               onClick={() => setSelectedDomain(1)}
               type="button"
               className={`
-              nes-btn w-full lg:h-[30%] text-sm md:text-base domain-btn
+              nes-btn w-full lg:h-[30%] text-sm md:text-base domain-btn 
               ${selectedDomain === 1 && "is-primary"}
             `}
             >
@@ -60,9 +60,9 @@ const ApplicationStatus = () => {
           )}
         </div>
       </div>
-      <div className="text-white w-full lg:w-[90%]">
-        <div className="nes-container with-title is-centered is-dark">
-          <p className="title">Status</p>
+      <div className="text-white h-full w-full lg:w-[90%]">
+        <div className="w-full bg-black h-full nes-container is-rounded is-centered  with-title is-centered is-dark">
+        <div className="h-auto mb-4 text-lg">Status</div>
           {selectedDomain === -1 && (
             <div className="text-xs">Select Domain to see Submissions</div>
           )}

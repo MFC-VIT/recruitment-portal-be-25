@@ -5,8 +5,8 @@ const FAQs = () => {
   return (
     <div className="w-full h-full flex flex-col md:flex-row justify-center items-center p-4 md:p-12">
       <Navbar />
-      <BoundingBox>
-        <div className="faq w-full h-full overflow-y-scroll">
+      <BoundingBox >
+        <div className="faq w-full h-full overflow-y-auto">
           <h1
             className="text-[1.5rem] md:text-[3rem] text-prime"
             style={{ textShadow: "3px 3px 0px red" }}

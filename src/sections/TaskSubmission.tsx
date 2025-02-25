@@ -48,9 +48,9 @@ const TaskSubmission = () => {
           duration={toastContent.duration}
         />
       )}
-      <div className="nes-container with-title is-centered w-full lg:w-[30%] invert">
-        <p className="title">Domains</p>
-        <div className="flex flex-col justify-between h-full gap-4 lg:gap-8">
+      <div className=" nes-container is-rounded h-full  max-h-fit text-sm with-title is-centered w-full lg:w-[30%] invert">
+        <div className="h-auto mb-4 text-lg">Domains</div>
+        <div className="flex flex-col h-full justify-between gap-4 lg:gap-8">
           {domains.includes("tech") && (
             <button
               type="button"
@@ -80,7 +80,7 @@ const TaskSubmission = () => {
               onClick={() => setSelectedDomain(2)}
               type="button"
               className={`
-              nes-btn w-full lg:h-[30%] text-sm md:text-base domain-btn
+              nes-btn w-full lg:h-[30%] text-sm  md:text-base domain-btn
               ${selectedDomain === 2 && "is-primary"}
             `}
             >
@@ -89,9 +89,10 @@ const TaskSubmission = () => {
           )}
         </div>
       </div>
-      <div className="text-white w-full lg:w-[90%]  overflow-y-scroll overflow-x-hidden">
-        <p className="text-base md:text-lg">Task Submission</p>
-        <div className="w-full  nes-container is-rounded is-dark dark-nes-container text-sm ">
+      <div className="text-white w-full h-full lg:w-[90%] max-h-fit  overflow-y-scroll overflow-x-hidden">
+      
+        <div className="w-full h-full nes-container is-rounded is-dark dark-nes-container text-sm ">
+        <div className="h-auto mb-4 text-lg">Task Submission</div>
           {selectedDomain === -1 && (
             <div className="min-h-40 flex items-center justify-center text-center">
               Select any domain to submit task.

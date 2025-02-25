@@ -38,7 +38,7 @@ const Dashboard = () => {
   };
 
   return (
-    <div className="w-full h-full flex flex-col md:flex-row justify-center items-center p-4 md:p-12 sm:flex sm:p-6">
+    <div className="w-full h-full flex flex-col md:flex-row justify-center items-center sm:flex p-4 ">
       <Navbar />
       <BoundingBox>
         <Header tabIndex={tabIndex} setTabIndex={setTabIndex} />

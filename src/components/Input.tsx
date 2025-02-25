@@ -22,7 +22,7 @@ const Input: React.FC<Props> = ({
   const [inputType, setInputType] = useState(type);
   
   return (
-    <div className={`relative w-full input-container ${className}`}>
+    <div className={`relative input-container flex flex-grow  ${className}`}>
       <input
         className="nes-input is-dark text-white outline-none"
         type={inputType}
@@ -34,7 +34,7 @@ const Input: React.FC<Props> = ({
       />
       {type === "password" && (
         <button
-          className="absolute top-1/2 -translate-y-1/2 right-2 h-1/2 w-10 outline-none border-0"
+          className="absolute top-1/2 -translate-y-1/2 right-2 h-1/2 w-100% outline-none border-0"
           onClick={() => {
             setInputType(inputType === "text" ? "password" : "text");
           }}

@@ -1,205 +1,368 @@
 import Input from "../components/Input";
-// import { useNavigate } from "react-router-dom";
-import axios from "axios";
+import axios, { AxiosError } from "axios";
 import Cookies from "js-cookie";
-import { useEffect, useLayoutEffect, useState } from "react";
-// import { toast } from "react-toastify";
+import { useEffect, useState, useCallback, useMemo } from "react";
 import CustomToast, { ToastContent } from "../components/CustomToast";
 import { useTabStore } from "../store";
 import secureLocalStorage from "react-secure-storage";
+import { debounce } from "lodash";
+import { z } from "zod";
+import BoundingBox from "../components/BoundingBox";
 
-const Profile = () => {
-  const { setTabIndex } = useTabStore();
-  const [openToast, setOpenToast] = useState(false);
-  const [toastContent, setToastContent] = useState<ToastContent>({});
-  const [mobile, setMobileno] = useState("");
-  const [emailpersonal, setEmailPersonal] = useState("");
-  const [participatedEvent, setParticipated] = useState("");
-  const [volunteeredEvent, setVolunteered] = useState("");
-  const [domain, setDomain] = useState<string[]>([]);
-  const [error, setError] = useState("false");
-  const [isProfile, setIsProfile] = useState();
-  const [isNextPage, setIsNextpage] = useState(false);
-  // const navigate = useNavigate();
+// Constants
+const API_BASE_URL = import.meta.env.VITE_BASE_URL;
+const TOAST_DURATION = 3000;
+const MOBILE_REGEX = /^\d{10}$/;
+const EMAIL_REGEX = /^\S+@\S+\.\S+$/;
+const MAX_EVENT_LENGTH = 100;
 
-  const handleCheckboxChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { value, checked } = e.target;
-    if (checked) {
-      setDomain((prevDomains) => [...prevDomains, value]);
-    } else {
-      setDomain((prevDomains) =>
-        prevDomains.filter((domain) => domain !== value)
-      );
-    }
-  };
+// Enums
+enum Domain {
+  TECH = "tech",
+  DESIGN = "design",
+  MANAGEMENT = "management",
+}
 
-  const handleProfileUpdate = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
+enum ToastType {
+  SUCCESS = "success",
+  ERROR = "error",
+}
 
-    if (domain.length === 0) {
-      setError("Please select at least one domain.");
-      return;
-    }
+// Types
+interface UserDetails {
+  id: string;
+  mobile: string;
+  emailpersonal: string;
+  participatedEvent: string;
+  volunteeredEvent: string;
+  domain: Domain[];
+  isProfileDone: boolean;
+}
 
-    if (volunteeredEvent.length > 100) {
-      setError("Volunteering event details should be within 100 characters.");
-      return;
-    }
-    if (participatedEvent.length > 100) {
-      setError("Participation event details should be within 100 characters.");
-      return;
-    }
+interface ProfileFormState {
+  mobile: string;
+  emailpersonal: string;
+  participatedEvent: string;
+  volunteeredEvent: string;
+  domain: Domain[];
+}
 
-    if (mobile.length !== 10 || !/^\d{10}$/.test(mobile)) {
-      setError(
-        "Mobile number should be 10 digits long and in the correct format."
-      );
-      return;
-    }
+interface ValidationError {
+  field: keyof ProfileFormState;
+  message: string;
+}
 
-    if (!/^\S+@\S+\.\S+$/.test(emailpersonal)) {
-      setError("Please enter a valid email address.");
-      return;
-    }
+// Zod Schema for validation
+const profileSchema = z.object({
+  mobile: z.string().regex(MOBILE_REGEX, "Mobile number must be 10 digits"),
+  emailpersonal: z.string().regex(EMAIL_REGEX, "Invalid email format"),
+  participatedEvent: z.string().max(MAX_EVENT_LENGTH, "Participation event details too long"),
+  volunteeredEvent: z.string().max(MAX_EVENT_LENGTH, "Volunteering event details too long"),
+  domain: z.array(z.enum([Domain.TECH, Domain.DESIGN, Domain.MANAGEMENT])).min(1, "Select at least one domain"),
+});
 
-    setError("");
+// Custom Hooks
+const useAuth = () => {
+  const getToken = useCallback(() => Cookies.get("jwtToken") || "", []);
+  const getUserId = useCallback(() => secureLocalStorage.getItem("id") as string | null, []);
+  return { getToken, getUserId };
+};
 
-    const formData = {
-      mobile,
-      emailpersonal,
-      domain,
-      participatedEvent,
-      volunteeredEvent,
-    };
+// const useUserDetails = () => {
+//   const { getToken, getUserId } = useAuth();
+//   const [isLoading, setIsLoading] = useState(false);
+//   const [error, setError] = useState<string | null>(null);
+
+//   const fetchUserDetails = useCallback(async () => {
+//     setIsLoading(true);
+//     setError(null);
+//     try {
+//       const id = getUserId();
+//       if (!id) throw new Error("User ID not found");
+
+//       const token = getToken();
+//       const { data } = await axios.get<UserDetails>(
+//         `${API_BASE_URL}/user/user/${id}`,
+//         {
+//           headers: { Authorization: `Bearer ${token}` },
+//         }
+//       );
+
+//       secureLocalStorage.setItem("userDetails", JSON.stringify(data));
+//       return data;
+//     } catch (error) {
+//       const message = error instanceof AxiosError 
+//         ? error.response?.data?.message || "Failed to fetch user details"
+//         : "An unexpected error occurred";
+//       setError(message);
+//       throw error;
+//     } finally {
+//       setIsLoading(false);
+//     }
+//   }, [getToken, getUserId]);
+
+//   return { fetchUserDetails, isLoading, error };
+// };
+
+const useUserDetails = () => {
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const fetchUserDetails = useCallback(async () => {
+    setIsLoading(true);
+    setError(null);
     try {
-      const id = secureLocalStorage.getItem("id");
+      // Simulate API delay
+      await new Promise((resolve) => setTimeout(resolve, 1000));
 
-      if (!id) {
-        throw new Error("User id not found in secureLocalStorage");
-      }
-      const token = Cookies.get("jwtToken");
-      const response = await axios.put(
-        `${import.meta.env.VITE_BASE_URL}/user/updateuser/${id}`,
-        formData,
-        {
-          headers: {
-            Authorization: `Bearer ` + `${token}`,
-          },
-        }
-      );
-      if (response.data) {
-        fetchUserDetails();
-      }
-      if (response.data.message) {
-        setOpenToast(true);
-        setToastContent({
-          message: `${response.data.message}`,
-        });
-        // let userDetails = secureLocalStorage.getItem("userDetails");
-        // const userDetailsStr = secureLocalStorage.getItem("userDetails");
-        // if (userDetailsStr) {
-        //   const userDetails: UserDetails = JSON.parse(userDetailsStr);
-        //   userDetails.isProfileDone = true;
-        //   userDetails.domain = formData.domain;
-        //   secureLocalStorage.setItem("userDetails", JSON.stringify(userDetails));
-        // }
-        // setTabIndex(1);
-        // fetchUserDetails();
-      }
+      // Mock user data
+      const mockData: UserDetails = {
+        id: "123",
+        mobile: "9876543210",
+        emailpersonal: "test@example.com",
+        participatedEvent: "Hackathon 2024",
+        volunteeredEvent: "Tech Fest 2023",
+        domain: [Domain.TECH, Domain.DESIGN],
+        isProfileDone: false,
+      };
 
-      setError("false");
-      console.error(error);
+      secureLocalStorage.setItem("userDetails", JSON.stringify(mockData));
+      return mockData;
     } catch (error) {
-      console.log(error);
-      setOpenToast(true);
-      setToastContent({
-        message: "Invalid Username or Password",
-        type: "error",
-      });
-      // toast.error("Invalid Username or Password", {
-      //   className: "custom-bg-error",
-      //   autoClose: 3000,
-      //   theme: "dark",
-      // });
-      setError("true");
-    }
-  };
-
-  const fetchUserDetails = async () => {
-    try {
-      const id = secureLocalStorage.getItem("id");
-
-      if (!id) {
-        throw new Error("User id not found in secureLocalStorage");
-      }
-      const token = Cookies.get("jwtToken");
-      const response = await axios.get(
-        `${import.meta.env.VITE_BASE_URL}/user/user/${id}`,
-        {
-          headers: {
-            Authorization: `Bearer ` + `${token}`,
-          },
-        }
-      );
-      // console.log(response.data);
-
-      secureLocalStorage.setItem("userDetails", JSON.stringify(response.data));
-
-      // console.log(response.data);
-
-      // console.log("ProfileIsDone", response.data.isProfileDone);
-      setIsNextpage(true);
-      setIsProfile(response.data.isProfileDone);
-    } catch (error) {
-      console.log(error);
-    }
-  };
-
-  useLayoutEffect(() => {
-    const userDetailsstore = secureLocalStorage.getItem(
-      "userDetails"
-    ) as string;
-    if (userDetailsstore) {
-      const userDetails = JSON.parse(userDetailsstore);
-      setIsProfile(userDetails.isProfileDone);
+      setError("Failed to fetch user details");
+      throw error;
+    } finally {
+      setIsLoading(false);
     }
   }, []);
 
-  // console.log("isProfile", isProfile);
-  useEffect(() => {
-    if (isProfile === true && isNextPage === true) {
-      setTabIndex(1);
-      setIsNextpage(false);
-    }
-  }, [isProfile]);
+  return { fetchUserDetails, isLoading, error };
+};
 
-  // if (isProfile) {
-  //   // const userDetails = JSON.parse(userDetailsStr);
-  //   // userDetails.isProfileDone = true;
-  //   return (
-  //     <div className="min-h-[75vh] w-[90%] md:w-[70%] text-center text-white mx-auto text-sm md:text-xl flex items-center justify-center">
-  //       You've already completed your profile!
-  //       <br />
-  //       <br />
-  //       If you want to update your domains, go to the profile section
-  //     </div>
-  //   );
-  // }
+// const useProfileUpdate = () => {
+//   const { getToken, getUserId } = useAuth();
+//   const [isLoading, setIsLoading] = useState(false);
+//   const [error, setError] = useState<string | null>(null);
+
+//   const updateProfile = useCallback(async (formData: ProfileFormState) => {
+//     setIsLoading(true);
+//     setError(null);
+//     try {
+//       const id = getUserId();
+//       if (!id) throw new Error("User ID not found");
+
+//       const token = getToken();
+//       const { data } = await axios.put(
+//         `${API_BASE_URL}/user/updateuser/${id}`,
+//         formData,
+//         {
+//           headers: { Authorization: `Bearer ${token}` },
+//         }
+//       );
+
+//       return data;
+//     } catch (error) {
+//       const message = error instanceof AxiosError 
+//         ? error.response?.data?.message || "Failed to update profile"
+//         : "An unexpected error occurred";
+//       setError(message);
+//       throw error;
+//     } finally {
+//       setIsLoading(false);
+//     }
+//   }, [getToken, getUserId]);
+
+//   return { updateProfile, isLoading, error };
+// };
+
+const useProfileUpdate = () => {
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const updateProfile = useCallback(async (formData: ProfileFormState) => {
+    setIsLoading(true);
+    setError(null);
+    try {
+      // Simulate API delay
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+
+      // Mock success response
+      secureLocalStorage.setItem("userDetails", JSON.stringify({ ...formData, isProfileDone: true }));
+      return { message: "Profile updated successfully!" };
+    } catch (error) {
+      setError("Failed to update profile");
+      throw error;
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
+  return { updateProfile, isLoading, error };
+};
+
+// Main Component
+const Profile = () => {
+  const { setTabIndex } = useTabStore();
+  const { fetchUserDetails, isLoading: isFetching, error: fetchError } = useUserDetails();
+  const { updateProfile, isLoading: isUpdating, error: updateError } = useProfileUpdate();
+
+  const [formState, setFormState] = useState<ProfileFormState>({
+    mobile: "",
+    emailpersonal: "",
+    participatedEvent: "",
+    volunteeredEvent: "",
+    domain: [],
+  });
+
+  const [validationErrors, setValidationErrors] = useState<ValidationError[]>([]);
+  const [toast, setToast] = useState<ToastContent | null>(null);
+  const [isProfileComplete, setIsProfileComplete] = useState<boolean | null>(null);
+
+  // Initialize form from stored data
+  useEffect(() => {
+    const userDetailsStr = secureLocalStorage.getItem("userDetails") as string | null;
+    if (userDetailsStr) {
+      const userDetails = JSON.parse(userDetailsStr) as UserDetails;
+      setIsProfileComplete(userDetails.isProfileDone);
+      setFormState({
+        mobile: userDetails.mobile,
+        emailpersonal: userDetails.emailpersonal,
+        participatedEvent: userDetails.participatedEvent,
+        volunteeredEvent: userDetails.volunteeredEvent,
+        domain: userDetails.domain,
+      });
+    } else {
+      fetchUserDetails().then((data) => {
+        setIsProfileComplete(data?.isProfileDone ?? false);
+      });
+    }
+  }, [fetchUserDetails]);
+
+  // Update tab index when profile is complete
+  useEffect(() => {
+    if (isProfileComplete) {
+      setTabIndex(1);
+    }
+  }, [isProfileComplete, setTabIndex]);
+
+  // Debounced form field updates
+  const debouncedSetFormState = useMemo(
+    () => debounce((field: keyof ProfileFormState, value: string | Domain[]) => {
+      setFormState((prev) => ({ ...prev, [field]: value }));
+    }, 300),
+    []
+  );
+
+  const handleInputChange = useCallback(
+    (field: keyof ProfileFormState, value: string) => {
+      debouncedSetFormState(field, value);
+    },
+    [debouncedSetFormState]
+  );
+
+  const handleDomainChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    const { value, checked } = e.target;
+    setFormState((prev) => ({
+      ...prev,
+      domain: checked
+        ? [...prev.domain, value as Domain]
+        : prev.domain.filter((domain) => domain !== value),
+    }));
+  }, []);
+
+  const validateForm = useCallback(() => {
+    const result = profileSchema.safeParse(formState);
+    if (!result.success) {
+      const errors = result.error.errors.map((error) => ({
+        field: error.path[0] as keyof ProfileFormState,
+        message: error.message,
+      }));
+      setValidationErrors(errors);
+      return false;
+    }
+    setValidationErrors([]);
+    return true;
+  }, [formState]);
+
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+
+    if (!validateForm()) {
+      setToast({
+        message: "Please fix form errors before submitting",
+        type: ToastType.ERROR,
+        duration: TOAST_DURATION,
+      });
+      return;
+    }
+
+    try {
+      const data = await updateProfile(formState);
+      await fetchUserDetails();
+      secureLocalStorage.setItem(
+        "userDetails",
+        JSON.stringify({ ...formState, isProfileDone: true })
+      );
+      setIsProfileComplete(true);
+      setToast({
+        message: data.message || "Profile updated successfully!",
+        type: ToastType.SUCCESS,
+        duration: TOAST_DURATION,
+      });
+    } catch (error) {
+      setToast({
+        message: updateError || "Failed to update profile",
+        type: ToastType.ERROR,
+        duration: TOAST_DURATION,
+      });
+    }
+  };
+
+  // Get field-specific error message
+  const getFieldError = useCallback(
+    (field: keyof ProfileFormState) => {
+      return validationErrors.find((error) => error.field === field)?.message;
+    },
+    [validationErrors]
+  );
+
+  // Loading state
+  if (isFetching) {
+    return (
+      <div className="min-h-[75vh] w-[90%] md:w-[70%] text-center text-white mx-auto text-sm md:text-xl flex items-center justify-center">
+        Loading profile...
+      </div>
+    );
+  }
+
+  // Error state
+  if (fetchError) {
+    return (
+      <div className="min-h-[75vh] w-[90%] md:w-[70%] text-center text-white mx-auto text-sm md:text-xl flex items-center justify-center">
+        Error loading profile: {fetchError}
+        <button
+          onClick={() => fetchUserDetails()}
+          className="nes-btn is-error ml-4"
+        >
+          Retry
+        </button>
+      </div>
+    );
+  }
 
   return (
-    <div className="w-full profile py-6 flex gap-4 flex-col lg:flex-row">
-      {openToast && (
+    <div className="w-full profile py-4 flex gap-2 flex-col lg:flex-row ">
+      {toast && (
         <CustomToast
-          setToast={setOpenToast}
-          setToastContent={setToastContent}
-          message={toastContent.message}
-          type={toastContent.type}
-          customStyle={toastContent.customStyle}
-          duration={toastContent.duration}
+          setToast={() => setToast(null)}
+          setToastContent={() => { }}
+          message={toast.message}
+          type={toast.type}
+          duration={toast.duration}
         />
       )}
 
-      {isProfile ? (
+      {isProfileComplete ? (
         <div className="min-h-[75vh] w-[90%] lg:w-[70%] text-center text-white mx-auto text-sm md:text-xl flex items-center justify-center">
           You've already completed your profile!
           <br />
@@ -208,48 +371,58 @@ const Profile = () => {
         </div>
       ) : (
         <>
-          {" "}
-          <div className="nes-container is-dark with-title w-full lg:w-[30%] dark-nes-container">
-            <p className="title dark-nes-container text-sm md:text-base">
-              Hello World!
-            </p>
-            <p className="text-light text-xs md:text-base description">
-              Got a sec? We need you to spice up your profile with the right
-              deets. Drop your name, contacts, Domains and whatever else floats
-              your boat. It helps us help you better! Cheers!
-            </p>
+          <div className="nes-container is-rounded is-dark dark-nes-container w-full lg:w-[30%] flex flex-col p-4">
+            {/* ✅ Centered Title */}
+            <div className="h-auto mb-4 text-lg">Hello World</div>
+
+            {/* ✅ Auto-Adjusting, Scrollable Text Content */}
+            <div className="flex-1 overflow-y-auto break-words text-light p-2 text-xs md:text-sm lg:text-base leading-tight md:leading-normal">
+              Got a sec? We need you to spice up your profile with the right deets. Drop your name, contacts, Domains, and whatever else floats your boat. It helps us help you better! Cheers!
+            </div>
           </div>
-          <div className="nes-container is-rounded w-full lg:w-[70%] is-dark dark-nes-container overflow-y-scroll">
+          <div className="nes-container is-rounded w-full lg:w-[70%] sm-[100%] is-dark dark-nes-container overflow-y-scroll z-[1000]">
             <form
               className="flex flex-col gap-8 md:gap-4 w-full"
-              onSubmit={handleProfileUpdate}
+              onSubmit={handleSubmit}
             >
-              <section className="flex items-start text-xs md:text-base lg:items-center flex-col lg:flex-row">
+              <section className="flex items-start text-xs md:text-base lg:items-center flex-col lg:flex-row leading-tight md:leading-normal" >
                 <label className="w-full lg:w-[40%] text-sm">
                   Mobile Number:
                 </label>
-                <Input
-                  label={"mobile"}
-                  placeholder="Your mobile"
-                  type="text"
-                  value={mobile}
-                  onChange={(e) => setMobileno(e.target.value)}
-                  className=""
-                />
+                <div className="w-full lg:w-[60%]">
+                  <Input
+                    label="mobile"
+                    placeholder="Your mobile"
+                    type="text"
+                    value={formState.mobile}
+                    onChange={(e) => handleInputChange("mobile", e.target.value)}
+                    className={getFieldError("mobile") ? "is-error" : ""}
+                  />
+                  {getFieldError("mobile") && (
+                    <p className="text-red-500 text-xs mt-1">{getFieldError("mobile")}</p>
+                  )}
+                </div>
               </section>
-              <section className="flex items-start text-xs lg:text-base lg:items-center flex-col lg:flex-row">
+
+              <section className="flex items-start text-xs md:text-base lg:items-center flex-col lg:flex-row">
                 <label className="w-full lg:w-[40%] text-sm">
                   Personal Email:
                 </label>
-                <Input
-                  label={"email"}
-                  placeholder="Personal Email"
-                  type="text"
-                  value={emailpersonal}
-                  onChange={(e) => setEmailPersonal(e.target.value)}
-                  className=""
-                />
+                <div className="w-full lg:w-[60%] ">
+                  <Input
+                    label="emailpersonal"
+                    placeholder="Personal Email"
+                    type="text"
+                    value={formState.emailpersonal}
+                    onChange={(e) => handleInputChange("emailpersonal", e.target.value)}
+                    className={getFieldError("emailpersonal") ? "is-error" : ""}
+                  />
+                  {getFieldError("emailpersonal") && (
+                    <p className="text-red-500 text-xs mt-1">{getFieldError("emailpersonal")}</p>
+                  )}
+                </div>
               </section>
+
               <section className="flex items-start text-xs md:text-base lg:items-center flex-col lg:flex-row">
                 <p className="w-full lg:w-[40%]">Domains:</p>
                 <div className="flex flex-col">
@@ -257,9 +430,9 @@ const Profile = () => {
                     <input
                       type="checkbox"
                       className="nes-checkbox is-dark"
-                      value="tech"
-                      checked={domain.includes("tech")}
-                      onChange={handleCheckboxChange}
+                      value={Domain.TECH}
+                      checked={formState.domain.includes(Domain.TECH)}
+                      onChange={handleDomainChange}
                     />
                     <span className="text-xs md:text-sm lg:text-base">
                       Technical
@@ -269,9 +442,9 @@ const Profile = () => {
                     <input
                       type="checkbox"
                       className="nes-checkbox is-dark"
-                      value="design"
-                      checked={domain.includes("design")}
-                      onChange={handleCheckboxChange}
+                      value={Domain.DESIGN}
+                      checked={formState.domain.includes(Domain.DESIGN)}
+                      onChange={handleDomainChange}
                     />
                     <span className="text-xs md:text-sm lg:text-base">
                       Design
@@ -281,52 +454,69 @@ const Profile = () => {
                     <input
                       type="checkbox"
                       className="nes-checkbox is-dark"
-                      value="management"
-                      checked={domain.includes("management")}
-                      onChange={handleCheckboxChange}
+                      value={Domain.MANAGEMENT}
+                      checked={formState.domain.includes(Domain.MANAGEMENT)}
+                      onChange={handleDomainChange}
                     />
                     <span className="text-xs md:text-sm lg:text-base">
                       Management
                     </span>
                   </label>
+                  {getFieldError("domain") && (
+                    <p className="text-red-500 text-xs mt-1">{getFieldError("domain")}</p>
+                  )}
                 </div>
               </section>
+
               <section className="flex items-start text-xs md:text-base flex-col">
                 <label className="w-full text-sm">
                   Have you volunteered in any of the MFC event:
                   <br />
                   If yes, enter event name
                 </label>
-                <Input
-                  label={"volunteer"}
-                  placeholder="Enter event details"
-                  type="text"
-                  value={volunteeredEvent}
-                  onChange={(e) => setVolunteered(e.target.value)}
-                  className=""
-                />
+                <div className="w-full">
+                  <Input
+                    label="volunteeredEvent"
+                    placeholder="Enter event details"
+                    type="text"
+                    value={formState.volunteeredEvent}
+                    onChange={(e) => handleInputChange("volunteeredEvent", e.target.value)}
+                    className={getFieldError("volunteeredEvent") ? "is-error" : ""}
+                  />
+                  {getFieldError("volunteeredEvent") && (
+                    <p className="text-red-500 text-xs mt-1">{getFieldError("volunteeredEvent")}</p>
+                  )}
+                </div>
               </section>
+
               <section className="flex items-start text-xs md:text-base flex-col">
                 <label className="w-full text-sm">
                   Have you participated in any of the MFC event:
                   <br />
                   If yes, enter event name
                 </label>
-                <Input
-                  label={"participated"}
-                  placeholder="Enter event details"
-                  type="text"
-                  value={participatedEvent}
-                  onChange={(e) => setParticipated(e.target.value)}
-                  className=""
-                />
+                <div className="w-full">
+                  <Input
+                    label="participatedEvent"
+                    placeholder="Enter event details"
+                    type="text"
+                    value={formState.participatedEvent}
+                    onChange={(e) => handleInputChange("participatedEvent", e.target.value)}
+                    className={getFieldError("participatedEvent") ? "is-error" : ""}
+                  />
+                  {getFieldError("participatedEvent") && (
+                    <p className="text-red-500 text-xs mt-1">{getFieldError("participatedEvent")}</p>
+                  )}
+                </div>
               </section>
+
               <div className="w-full flex justify-end">
                 <button
                   type="submit"
                   className="nes-btn is-error w-fit custom-nes-error text-xs md:text-xl"
+                  disabled={isUpdating}
                 >
-                  Next &rarr;
+                  {isUpdating ? "Updating..." : "Next →"}
                 </button>
               </div>
             </form>

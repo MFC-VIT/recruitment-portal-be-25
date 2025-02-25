@@ -85,9 +85,9 @@ const ForgotPassword = () => {
           duration={toastContent.duration}
         />
       )}
-      <BoundingBox>
-        <div className="w-full h-full relative z-[100] flex justify-between flex-col lg:flex-row">
-          <div className="heading text-center md:text-left">
+      <BoundingBox className="overflow-hidden">
+        <div className="w-full h-full relative z-[100] flex flex-col lg:flex-row">
+          <div className="heading text-center lg:text-left">
             <h1 className="text-[2rem] md:text-[2.4rem] text-prime">
               MOZILLA FIREFOX
             </h1>
@@ -100,9 +100,9 @@ const ForgotPassword = () => {
               </Link>
             </div> */}
           </div>
-          <div className="flex-grow h-full p-4 md:p-8 mt-4 md:mt-0">
+          <div className="h-full p-8 md:p-8 mt-4 md:mt-0 ">
             <form
-              className="flex flex-col gap-3 md:gap-6 w-full lg:w-[60%] mx-auto"
+              className="flex flex-col gap-3 md:gap-6 w-full lg:w-[60%] mx-auto "
               onSubmit={handleLogin}
             >
               <Input
@@ -127,15 +127,16 @@ const ForgotPassword = () => {
               {regnoError && (
                 <p className="text-red-500 text-sm">{regnoError}</p>
               )}
-              <Button submit={true}>Reset Password</Button>
+              <Button submit={true} className="w-full sm:w-auto mx-auto mb-10">Reset Password</Button>
             </form>
-            <section className="text-center mt-6 md:mt-12 text-light bg-dark py-2 md:py-4 w-full lg:w-[60%] mx-auto relative">
-              <div className="text-black text-sm md:text-lg cursor-pointer w-full bg-prime absolute bottom-0 py-1">
-                <NavLink to="/" className="text-black">
-                  &larr; Back
-                </NavLink>
-              </div>
-            </section>
+            <section className="text-center sm:mt-10  text-light w-full mx-auto">
+            <div className="text-black text-sm md:text-lg cursor-pointer w-full sm:w-auto mx-auto">
+              <NavLink to="/" className="text-black nes-btn is-error custom-nes-error block w-full sm:w-auto mx-auto">
+                &larr; Back
+              </NavLink>
+            </div>
+          </section>
+
           </div>
         </div>
         <img

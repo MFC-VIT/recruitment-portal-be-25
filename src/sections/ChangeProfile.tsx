@@ -137,7 +137,7 @@ const ChangeProfile = () => {
     <div className="w-full min-h-screen h-full bg-black p-12 flex flex-grow flex-col md:flex-row">
       <Navbar />
       <div
-        className="border-8 border-dashed border-prime h-full flex-grow p-4 text-white flex flex-col gap-4 items-center md:justify-center"
+        className="border-2 border-dashed border-prime h-full flex-grow p-4 text-white flex flex-col gap-4 items-center md:justify-center"
         style={{ background: "rgba(0,0,0,0)" }}
       >
         {isProfile ? (

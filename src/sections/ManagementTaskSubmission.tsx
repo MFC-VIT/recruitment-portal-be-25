@@ -166,7 +166,7 @@ const ManagementTaskSubmission = ({ setOpenToast, setToastContent }: Props) => {
   if (managementIsDone) {
     return (
       <div className="p-4">
-        You've successfully submitted the Managaement Task. You can now track
+        You've successfully submitted the Management Task. You can now track
         the status of your application in the designated "Application Status"
         tab.
       </div>
@@ -220,7 +220,7 @@ const ManagementTaskSubmission = ({ setOpenToast, setToastContent }: Props) => {
                 checked={subdomain.includes("publicity")}
                 onChange={handleCheckboxChange}
               />
-              <span className="text-xs md:text-xs">Publicity</span>
+              <span className="text-xs md:text-xs ">Publicity</span>
             </label>
             <label>
               <input
@@ -271,7 +271,7 @@ const ManagementTaskSubmission = ({ setOpenToast, setToastContent }: Props) => {
                     padding: "1rem",
                   }}
                   key={index}
-                  className="nes-field is-inline flex flex-col mb-6"
+                  className="nes-field is-inline flex flex-col mb-6 "
                 >
                   <label
                     style={{ color: "#fff" }}
