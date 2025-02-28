@@ -1,7 +1,7 @@
 const UserModel = require("../models/userModel");
 const VerificationModel = require("../models/verificationModel");
 const sendVerificationMail = require("../utils/sendverification");
-const sendPasswordResetMail = require("../utils/sendVerificationPassword");
+const sendPasswordResetMail = require("../utils/sendverificationPassword");
 const allowedEmailsData = require("../../allowedEmails.json");
 
 const jwt = require("jsonwebtoken");
