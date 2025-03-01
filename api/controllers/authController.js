@@ -218,6 +218,7 @@ const login = async (req, res) => {
             roundTwo: user.roundTwo,
             roundThree: user.roundThree,
             admin: user.admin,
+            isProfileDone : user.isProfileDone,
             domain: user.domain,
             isJC: user.isJC,
             isSC: user.isSC,
@@ -290,6 +291,7 @@ const refreshToken = async (req, res) => {
         roundTwo: user.roundTwo,
         roundThree: user.roundThree,
         admin: user.admin,
+        isProfileDone : user.isProfileDone,
       },
       process.env.ACCESS_TOKEN_SECERT,
       { expiresIn: "45m" }

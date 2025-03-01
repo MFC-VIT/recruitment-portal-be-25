@@ -40,7 +40,7 @@ const uploadTaskManagment = async (req, res) => {
       user_id: id,
     });
 
-    if (user && user.isDone === true) {
+    if (user && user.isManagementDone === true) {
       const response = new Response (
         200,
         null,
@@ -116,7 +116,7 @@ const uploadTaskTech = async (req, res) => {
     });
     console.log("user2", user);
 
-    if (user && user.isDone === true) {
+    if (user && user.isTechDone === true) {
       const response = new Response (
         200,
         null,
@@ -183,7 +183,7 @@ const uploadDesignTech = async (req, res) => {
       user_id: id,
     });
 
-    if (user && user.isDone === true) {
+    if (user && user.isDesignDone === true) {
       const response = new Response (
         200,
         null,
