@@ -93,7 +93,11 @@ const ManagementTaskSubmission = ({ setOpenToast, setToastContent }: Props) => {
     }
 
     // console.log("id1", id);
-    const token = Cookies.get("jwtToken");
+    const token = Cookies.get("jwtToken") || secureLocalStorage.getItem("jwtToken");
+    if (!token) {
+      console.error("JWT token is missing. Authentication required.");
+      return;
+    }
 
     const updatedFormData = {
       ...formData,
@@ -107,10 +111,11 @@ const ManagementTaskSubmission = ({ setOpenToast, setToastContent }: Props) => {
         {
           headers: {
             Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
           },
         }
       );
-      // console.log("response", response);
+      console.log("Response:", response.data);
       if (response.data) {
         fetchUserDetails();
       }
@@ -126,28 +131,28 @@ const ManagementTaskSubmission = ({ setOpenToast, setToastContent }: Props) => {
       if (!id) {
         throw new Error("User id not found in secureLocalStorage");
       }
-      const token = Cookies.get("jwtToken");
+      const token = Cookies.get("jwtToken") || secureLocalStorage.getItem("jwtToken");
+
       const response = await axios.get(
         `${import.meta.env.VITE_BASE_URL}/user/user/${id}`,
         {
           headers: {
-            Authorization: `Bearer ` + `${token}`,
+            Authorization: `Bearer ${token}`,
           },
         }
       );
       // console.log(response.data);
 
+      console.log("User Details:", response.data);
       secureLocalStorage.setItem("userDetails", JSON.stringify(response.data));
 
-      // console.log(response.data);
       if (response.data.managementIsDone) {
         setManagementIsDone(true);
         setOpenToast(true);
         setToastContent({ message: "Task Submitted Successfully!" });
       }
-      // console.log("techIsDone", response.data.techIsDone);
-    } catch (error) {
-      console.log(error);
+    } catch (error: any) {
+      console.error("Fetch User Details Error:", error.response?.data || error.message);
     }
   };
   const [managementIsDone, setManagementIsDone] = useState(false);
@@ -253,7 +258,7 @@ const ManagementTaskSubmission = ({ setOpenToast, setToastContent }: Props) => {
           placeholder="Write here..."
         ></textarea>
 
-        <section className="my-2  text-xs md:text-sm">
+        <section className="my-8  text-xs md:text-sm">
           <span className="text-prime">
             Answer some general questions: (Choose a sub-domain in order to
             procure your questions)
