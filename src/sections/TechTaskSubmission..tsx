@@ -75,11 +75,11 @@ const TechTaskSubmission = ({ setOpenToast, setToastContent }: Props) => {
           },
         }
       );
-      // console.log("response", response);
+      console.log("response", response);
       if (response.data) {
         fetchUserDetails();
       }
-      // console.log(response.data);
+      console.log(response.data);
     } catch (error) {
       console.error(error);
     }
