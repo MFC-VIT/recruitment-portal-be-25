@@ -72,4 +72,4 @@ const TechTaskSchema = new Schema(
   { timestamps: true }
 );
 
-module.exports = mongoose.model("TechTask", TechTaskSchema);
+  module.exports = mongoose.model("TechTask", TechTaskSchema);

@@ -6,6 +6,7 @@ const {
   getAllUserTech,
   getAllUserManagement,
   getAllUserDesign,
+  getUserByRegNo
 } = require("../controllers/adminController");
 const isAdmin = require("../middleware/validateAdmin");
 const validateToken = require("../middleware/validateTokenHandler");
@@ -52,5 +53,13 @@ router.put(
   isAdmin,
   makeAdmin
 );
+
+router.get(
+  "/response",
+  // validateToken,
+  // validateVerify,
+  // isAdmin,
+  getUserByRegNo
+)
 
 module.exports = router;

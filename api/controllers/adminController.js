@@ -1,7 +1,81 @@
 const UserModel = require("../models/userModel");
 const Response = require("../utils/responseModel");
+const mongoose = require("mongoose")
 const TechTaskModel = require("../models/techTaskModel");
 const DesignTaskModel = require("../models/designTaskModel");
+const ManagementTaskModel = require("../models/managementModel")
+
+const getUserByRegNo = async (req,res) => {
+  const {regNo} = req.body;
+
+  if(!regNo) {
+    const response = new Response(
+      400,
+      null,
+      "regNo missing",
+      false
+    );
+    return res.status(response.statusCode).json(response);
+  }
+
+  console.log(regNo)
+
+  const user = await UserModel.findOne({regno: regNo});
+
+  if (!user) {
+    const response = new Response (
+      400,
+      null,
+      "user with registartion number not found",
+      false
+    );
+    return res.status(response.statusCode).json(response);
+  }
+
+  console.log(user.id)
+
+  const userData = await UserModel.aggregate([
+    {
+      $match: { _id: new mongoose.Types.ObjectId(user.id) },
+    },
+    {
+      $lookup: {
+              from: "techtasks",
+              localField: "_id",
+              foreignField: "user_id",
+              as: "techTasks",
+            },
+          },
+          {
+            $lookup: {
+              from: "designtasks",
+              localField: "_id",
+              foreignField: "user_id",
+              as: "designTasks",
+            },
+          },
+          {
+            $lookup: {
+              from: "managementtasks",
+              localField: "_id",
+              foreignField: "user_id",
+              as: "managementTasks",
+            },
+          }
+  ])
+
+  console.log(user)
+
+  const response = new Response(
+    200,
+    userData,
+    "User Response fetched Successfully",
+    true
+  )
+
+  return res.status(response.statusCode).json(response);
+
+}
 
 const getAllUser = async (req, res) => {
   try {
@@ -441,4 +515,5 @@ module.exports = {
   getAllUserTech,
   getAllUserManagement,
   getAllUserDesign,
+  getUserByRegNo,
 };

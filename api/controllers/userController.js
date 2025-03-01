@@ -3,90 +3,62 @@ const mongoose = require("mongoose");
 const Response = require("../utils/responseModel")
 
 const UpdateUser = async (req, res) => {
-  const { id } = req.params;
-  const { mobile, emailpersonal, domain, volunteeredEvent, participatedEvent } =
-    req.body;
-  console.log(req.body);
   try {
+    const { id } = req.params;
+    const { mobile, emailpersonal, domain, volunteeredEvent, participatedEvent } = req.body;
+    
     if (!mobile || !emailpersonal || !domain) {
-      return res
-        .status(400)
-        .json({ message: "All fields are required booboo" });
+      return res.status(400).json({ message: "All fields are required." });
     }
-    // const updateObj = {};
-    // if (volunteeredEvent !== undefined)
-    //   updateObj.volunteeredEvent = volunteeredEvent;
-    // if (participatedEvent !== undefined)
-    //   updateObj.participated = participatedEvent;
 
-    const postinfo = await UserModel.findOne({
-      _id: id,
-      // regno: regno,
-    });
-    if (!postinfo) {
-      return res.status(200).json({
-        message:
-          "some error in your email id,regno or you hav changed it for the orginal email and id",
-      });
+    const user = await UserModel.findById(id);
+    if (!user) {
+      return res.status(404).json({ message: "User not found." });
     }
-    if (postinfo.isProfileDone) {
-      return res.status(200).json({
-        message:
-          "you basic profile update is done. go to update profile for changing details",
-      });
-    } else {
-      const updatedUser = await UserModel.findOneAndUpdate(
-        { _id: id },
 
-        {
-          mobile: mobile,
-          emailpersonal: emailpersonal,
-          domain: domain,
-          // volunteered: volunteered,
-          volunteeredEvent: volunteeredEvent,
-          // participated: participated,
-          participatedEvent: participatedEvent,
-          isProfileDone: true,
-          // $set: updateObj,
-        }
-      );
-      await updatedUser.save();
-      res.status(200).json("OK");
+    if (user.isProfileDone) {
+      return res.status(400).json({ message: "Profile update is already completed. Use update profile for modifications." });
     }
+
+    user.mobile = mobile;
+    user.emailpersonal = emailpersonal;
+    user.domain = domain;
+    user.volunteeredEvent = volunteeredEvent;
+    user.participatedEvent = participatedEvent;
+    user.isProfileDone = true;
+    
+    await user.save();
+    return res.status(200).json({ message: "Profile updated successfully." });
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    return res.status(500).json({ message: error.message });
   }
 };
 
 const UpdateUserDomain = async (req, res) => {
-  const { id } = req.params;
-  const { domain } = req.body;
   try {
-    console.log(req.body);
-    console.log("req.params", req.params);
+    const { id } = req.params;
+    const { domain } = req.body;
 
-    const postinfo = await UserModel.findOne({
-      _id: id,
-      // email: email,
-      // regno: regno,
-    });
-    if (!postinfo) {
-      return res.status(200).json({
-        message:
-          "some error in your email id,regno or you hav changed it for the orginal email and id",
-      });
+    if (!domain) {
+      return res.status(400).json({ message: "Domain is required." });
     }
 
-    const updatedUser = await UserModel.findOneAndUpdate(
-      { _id: id },
-      { domain: domain },
-      { new: true }
-    );
-    res.status(200).json(updatedUser);
+    const user = await UserModel.findById(id);
+    if (!user) {
+      return res.status(404).json({ message: "User not found." });
+    }
+
+    user.domain.push(domain);
+    await user.save();
+    
+    return res.status(200).json({ message: "Domain updated successfully.", user });
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    return res.status(500).json({ message: error.message });
   }
 };
+
+module.exports = { UpdateUser, UpdateUserDomain };
+
 
 const getuser = async (req, res) => {
   try {

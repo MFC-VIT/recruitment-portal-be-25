@@ -13,7 +13,13 @@ async function sendVerificationMail(user) {
       from: process.env.AUTH_EMAIL,
       to: user.email,
       subject: "Verify Email OTP",
-      html: `<p>To proceed with your recruitment process, please utilize the provided OTP: <b>${otp}</b></p><br/><p>Thank you for your interest in joining Mozilla Firefox Club - VIT. OTP is valid only for 15 minutes.</p>`,
+      html: `<p>Dear Candidate ,</p>  
+
+            <p>Your OTP for the Mozilla Firefox Club - VIT recruitment process is: <b>${otp}</b></p>  
+
+            <p>It is valid for 15 minutes. Please enter it promptly.</p>  
+
+            <p>Thank you for your interest.</p>`,
     };
     const salt = await bcrypt.genSalt(10);
     const hashedOTP = await bcrypt.hash(otp, salt);
