@@ -36,9 +36,7 @@ const uploadTaskManagment = async (req, res) => {
     subdomain,
   } = req.body;
   try {
-    const user = await ManagmentTaskModel.findOne({
-      user_id: id,
-    });
+    const user = await ManagmentTaskModel.findById(id);
 
     if (user && user.isManagementDone === true) {
       const response = new Response (
@@ -111,12 +109,10 @@ const uploadTaskTech = async (req, res) => {
     const { id } = req.params;
     const { question1, question2, question3, question4, subdomain } = req.body;
     console.log(id);
-    const user = await TechTaskModel.findOne({
-      user_id: id,
-    });
-    console.log("user2", user);
+    const user = await UserModel.findById(id);
+    console.log("chichichapachapa", user);
 
-    if (user && user.isTechDone === true) {
+    if (user.isTechDone === true) {
       const response = new Response (
         200,
         null,
@@ -179,9 +175,7 @@ const uploadDesignTech = async (req, res) => {
     subdomain,
   } = req.body;
   try {
-    const user = await DesignTaskModel.findOne({
-      user_id: id,
-    });
+    const user = await DesignTaskModel.findById(id);
 
     if (user && user.isDesignDone === true) {
       const response = new Response (
