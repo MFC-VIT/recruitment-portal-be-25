@@ -125,7 +125,7 @@ const TechTaskSubmission = ({ setOpenToast, setToastContent }: Props) => {
       };
       // console.log(userDetails);
       const isTechDone = userDetails.techIsDone;
-      setIsTechDone(isTechDone[0]);
+      setIsTechDone(!!userDetails.techIsDone);
       // console.log("userDomains2:", userDomains);
     }
   }, []);

@@ -6,6 +6,7 @@ import BoundingBox from "../components/BoundingBox";
 import Button from "../components/Button";
 import CustomToast, { ToastContent } from "../components/CustomToast";
 import Input from "../components/Input";
+import { toast } from "react-toastify";
 
 const ForgotPassword = () => {
   const [openToast, setOpenToast] = useState(false);
@@ -51,12 +52,12 @@ const ForgotPassword = () => {
         setToastContent({
           message: "Password reset link sent successfully",
         });
-        // toast.success("Password reset link sent successfully", {
-        //   className: "custom-bg",
-        //   autoClose: 3000,
-        //   theme: "dark",
-        // });
-        // console.log("response", response);
+        toast.success("Password reset link sent successfully", {
+          className: "custom-bg",
+          autoClose: 3000,
+          theme: "dark",
+        });
+        console.log("response", response);
       }
     } catch (error) {
       console.error("An unexpected error occurred:", error);
@@ -65,11 +66,11 @@ const ForgotPassword = () => {
         message: "An unexpected error occurred. Please try again later.",
         type: "error",
       });
-      // toast.error("An unexpected error occurred. Please try again later.", {
-      //   className: "custom-bg-error",
-      //   autoClose: 3000,
-      //   theme: "dark",
-      // });
+      toast.error("An unexpected error occurred. Please try again later.", {
+        className: "custom-bg-error",
+        autoClose: 3000,
+        theme: "dark",
+      });
     }
   };
 

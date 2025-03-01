@@ -10,19 +10,19 @@ const TaskSubmission = () => {
   const [toastContent, setToastContent] = useState<ToastContent>({});
   const [selectedDomain, setSelectedDomain] = useState(-1);
   const [domains, setDomains] = useState<string[]>([]);
-  // const domainArr = ["tech", "design", "management"];
-  // const [domain, setDomain] = useState<string[]>([]);
+  const domainArr = ["tech", "design", "management"];
+  const [domain, setDomain] = useState<string[]>([]);
 
-  // const handleCheckboxChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-  //   const { value, checked } = e.target;
-  //   if (checked) {
-  //     setDomain((prevDomains) => [...prevDomains, value]);
-  //   } else {
-  //     setDomain((prevDomains) =>
-  //       prevDomains.filter((domain) => domain !== value)
-  //     );
-  //   }
-  // };
+  const handleCheckboxChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { value, checked } = e.target;
+    if (checked) {
+      setDomain((prevDomains) => [...prevDomains, value]);
+    } else {
+      setDomain((prevDomains) =>
+        prevDomains.filter((domain) => domain !== value)
+      );
+    }
+  };
 
   useEffect(() => {
     const userDetailsString = secureLocalStorage.getItem(

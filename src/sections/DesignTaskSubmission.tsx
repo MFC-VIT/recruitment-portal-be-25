@@ -3,13 +3,13 @@ import axios from "axios";
 import Cookies from "js-cookie";
 import secureLocalStorage from "react-secure-storage";
 import { ToastContent } from "../components/CustomToast";
-// import { useTabStore } from "../store";
+import { useTabStore } from "../store";
 interface Props {
   setOpenToast: React.Dispatch<React.SetStateAction<boolean>>;
   setToastContent: React.Dispatch<React.SetStateAction<ToastContent>>;
 }
 const DesignTaskSubmission = ({ setOpenToast, setToastContent }: Props) => {
-  // const { tabIndex, setTabIndex } = useTabStore();
+const { tabIndex, setTabIndex } = useTabStore();
   const [subdomain, setSubDomain] = useState<string[]>([]);
   interface FormData {
     [key: string]: string | [string, string];
@@ -130,12 +130,10 @@ const DesignTaskSubmission = ({ setOpenToast, setToastContent }: Props) => {
     const userDetailsString = secureLocalStorage.getItem("userDetails");
     if (typeof userDetailsString === "string") {
       const userDetails = JSON.parse(userDetailsString) as {
-        designIsDone: boolean[];
+        designIsDone: boolean; // ✅ Change this from boolean[] to boolean
       };
-      // console.log(userDetails);
-      const isTechDone = userDetails.designIsDone;
-      setDesignIsDone(isTechDone[0]);
-      // console.log("userDomains2:", userDomains);
+      
+      setDesignIsDone(!!userDetails.designIsDone); // ✅ Convert value to boolean safely
     }
   }, []);
   if (designIsDone) {

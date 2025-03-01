@@ -159,7 +159,7 @@ const ManagementTaskSubmission = ({ setOpenToast, setToastContent }: Props) => {
       };
       // console.log(userDetails);
       const isTechDone = userDetails.managementIsDone;
-      setManagementIsDone(isTechDone[0]);
+      setManagementIsDone(!!userDetails.managementIsDone);
       // console.log("userDomains2:", userDomains);
     }
   }, []);

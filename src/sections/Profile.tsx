@@ -229,7 +229,7 @@ const Profile = () => {
         emailpersonal: userDetails.emailpersonal,
         participatedEvent: userDetails.participatedEvent,
         volunteeredEvent: userDetails.volunteeredEvent,
-        domain: userDetails.domain,
+        domain: userDetails.domain || [],
       });
     } else {
       fetchUserDetails().then((data) => {
@@ -431,7 +431,7 @@ const Profile = () => {
                       type="checkbox"
                       className="nes-checkbox is-dark"
                       value={Domain.TECH}
-                      checked={formState.domain.includes(Domain.TECH)}
+                      checked={formState.domain?.includes(Domain.TECH)}
                       onChange={handleDomainChange}
                     />
                     <span className="text-xs md:text-sm lg:text-base">
@@ -443,7 +443,7 @@ const Profile = () => {
                       type="checkbox"
                       className="nes-checkbox is-dark"
                       value={Domain.DESIGN}
-                      checked={formState.domain.includes(Domain.DESIGN)}
+                      checked={formState.domain?.includes(Domain.DESIGN)}
                       onChange={handleDomainChange}
                     />
                     <span className="text-xs md:text-sm lg:text-base">
@@ -455,7 +455,7 @@ const Profile = () => {
                       type="checkbox"
                       className="nes-checkbox is-dark"
                       value={Domain.MANAGEMENT}
-                      checked={formState.domain.includes(Domain.MANAGEMENT)}
+                      checked={formState.domain?.includes(Domain.MANAGEMENT)}
                       onChange={handleDomainChange}
                     />
                     <span className="text-xs md:text-sm lg:text-base">
