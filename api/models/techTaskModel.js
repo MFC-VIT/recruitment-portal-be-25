@@ -64,6 +64,19 @@ const TechTaskSchema = new Schema(
       },
       required: true,
     },
+    question5:{
+      type: [String],
+      validate: {
+        validator: function (value) {
+          return value.every((item) => {
+            if (item === null) return true;
+            return item.trim().split(/\s+/).length <= 2000;
+          });
+        },
+        message: "Maximum word limit exceeded (2000 words).",
+      },
+      required: true,
+    },
 
     isDone: {
       type: Boolean,

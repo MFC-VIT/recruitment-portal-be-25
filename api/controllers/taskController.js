@@ -107,7 +107,7 @@ const uploadTaskManagment = async (req, res) => {
 const uploadTaskTech = async (req, res) => {
   try {
     const { id } = req.params;
-    const { question1, question2, question3, question4, subdomain } = req.body;
+    const { question1, question2, question3, question4,question5, subdomain } = req.body;
     console.log(id);
     const user = await UserModel.findById(id);
     console.log("chichichapachapa", user);
@@ -128,6 +128,7 @@ const uploadTaskTech = async (req, res) => {
       question2: question2,
       question3: question3,
       question4: question4,
+      question5: question5,
       subdomain: subdomain,
       isDone: true,
     });
