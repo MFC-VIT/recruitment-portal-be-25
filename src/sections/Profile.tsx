@@ -222,8 +222,8 @@ const Profile = () => {
   useEffect(() => {
     const userDetailsStr = secureLocalStorage.getItem("userDetails") as string | null;
     if (userDetailsStr) {
-      const userDetails = JSON.parse(userDetailsStr) as UserDetails;
-      setIsProfileComplete(userDetails.isProfileDone);
+      const userDetails = JSON.parse(userDetailsStr);
+      setIsProfileComplete(userDetails?.data.isProfileDone);
       setFormState({
         mobile: userDetails.mobile,
         emailpersonal: userDetails.emailpersonal,
