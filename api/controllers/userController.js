@@ -48,7 +48,12 @@ const UpdateUserDomain = async (req, res) => {
       return res.status(404).json({ message: "User not found." });
     }
 
+    if(user.isDomainUpdated) {
+      res.status(400).json({message:"cannot update domains again and again"});
+    }
+
     user.domain = domain
+    user.isDomainUpdated = true;
     await user.save();
     
     return res.status(200).json({ message: "Domain updated successfully.", user });
