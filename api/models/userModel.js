@@ -100,10 +100,6 @@ const UserSchema = new Schema(
     isJC: {
       type: Boolean,
     },
-    isDomainUpdated:{
-      type:Boolean,
-      default:false,
-    },
     isDesignDone: {
       type: Boolean,
       default: false,
