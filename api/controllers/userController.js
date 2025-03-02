@@ -53,7 +53,6 @@ const UpdateUserDomain = async (req, res) => {
     }
 
     user.domain = domain
-    user.isDomainUpdated = true;
     await user.save();
     
     return res.status(200).json({ message: "Domain updated successfully.", user });

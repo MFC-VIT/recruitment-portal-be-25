@@ -97,10 +97,6 @@ const UserSchema = new Schema(
     isSC: {
       type: Boolean,
     },
-    isDomainUpdated:{
-      type:Boolean,
-      default:false,
-    },
     isJC: {
       type: Boolean,
     },
