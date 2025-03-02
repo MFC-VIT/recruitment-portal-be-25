@@ -6,6 +6,7 @@ const {
   resendOTP,
   requestPasswordReset,
   updatePassword,
+  refreshToken,
 } = require("../controllers/authController");
 const { rateLimiter_10min_10req } = require("../middleware/ratelimiter");
 
@@ -18,6 +19,7 @@ const router = express.Router();
 
 router.post("/signup", rateLimiter_10min_10req, signUp);
 router.post("/login", rateLimiter_10min_10req, login);
+router.post("/refresh", refreshToken)
 router.post(
   "/verifyotp/:id",
   rateLimiter_10min_10req,

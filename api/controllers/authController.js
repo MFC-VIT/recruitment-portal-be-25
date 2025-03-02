@@ -222,6 +222,7 @@ const login = async (req, res) => {
             isTechDone: user.isTechDone,
             isManagementDone: user.isManagementDone,
             isDesignDone: user.isDesignDone,
+            isDomainUpdated: user.isDomainUpdated,
             domain: user.domain,
             isJC: user.isJC,
             isSC: user.isSC,
@@ -229,10 +230,38 @@ const login = async (req, res) => {
           process.env.ACCESS_TOKEN_SECERT
         );
 
+        const refreshToken = jwt.sign(
+          { id: user._id,
+            username: user.username,
+            email: user.email,
+            regno: user.regno,
+            verified: user.verified,
+            roundOne: user.roundOne,
+            roundTwo: user.roundTwo,
+            roundThree: user.roundThree,
+            admin: user.admin,
+            isProfileDone : user.isProfileDone,
+            isTechDone: user.isTechDone,
+            isManagementDone: user.isManagementDone,
+            isDesignDone: user.isDesignDone,
+            isDomainUpdated: user.isDomainUpdated,
+            domain: user.domain,
+            isJC: user.isJC,
+            isSC: user.isSC,
+          },
+          process.env.ACCESS_TOKEN_SECERT,
+          { expiresIn: "45m" }
+        );
+        
+        // Save refresh token to user
+        user.refreshToken = refreshToken;
+        await user.save();
+
         console.log(`User created login : ${user}`);
         console.log(`User token login: ${token}`);
         res.status(200).json({
           token,
+          refreshToken,
           id: user._id,
           username: user.username,
           email: user.email,
@@ -251,7 +280,7 @@ const login = async (req, res) => {
       error.message,
       false
     );
-    res.status(response.statusCode).json(response)
+    res.status(500).json(response)
     console.log(error);
   }
 };
@@ -297,6 +326,7 @@ const refreshToken = async (req, res) => {
             admin: user.admin,
             isProfileDone : user.isProfileDone,
             isTechDone: user.isTechDone,
+            isDomainUpdated: user.isDomainUpdated,
             isManagementDone: user.isManagementDone,
             isDesignDone: user.isDesignDone,
             domain: user.domain,
