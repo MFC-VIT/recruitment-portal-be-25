@@ -22,7 +22,6 @@ router.put(
 );
 router.put(
   "/updateuserdomain/:id",
-  rateLimiter_10min_10req,
   validateToken,
   validateVerify,
   UpdateUserDomain

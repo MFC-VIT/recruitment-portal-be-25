@@ -70,6 +70,10 @@ const UserSchema = new Schema(
     participatedEvent: {
       type: String,
     },
+    prevAccessToken: {
+      type: [String],
+      default: []
+    },
     isProfileDone: {
       type: Boolean,
       required: true,
