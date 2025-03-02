@@ -5,6 +5,12 @@ import Cookies from "js-cookie";
 import Navbar from "../components/Navbar";
 import secureLocalStorage from "react-secure-storage";
 import { useNavigate } from "react-router-dom";
+import { jwtDecode, JwtPayload } from "jwt-decode";
+
+interface CustomJwtPayload extends JwtPayload {
+  isProfileDone?: boolean; 
+}
+
 const ChangeProfile = () => {
   const navigator = useNavigate();
   const [domain, setDomain] = useState<string[]>([]);
@@ -24,6 +30,40 @@ const ChangeProfile = () => {
       );
     }
     setIsDomainChanged(true);
+  };
+
+  // Updated function to refresh the token in the DB
+  const refreshToken = async () => {
+    try {
+      const token = Cookies.get("jwtToken");
+      const refreshToken = Cookies.get("refreshToken") || secureLocalStorage.getItem("refreshToken");
+
+      if (!token || !refreshToken) {
+        console.error("Missing token or refreshToken");
+        return false;
+      }
+      
+      // Send the refresh token to the server
+      const response = await axios.post(
+        `${import.meta.env.VITE_BASE_URL}/auth/refresh`,
+        { refreshToken }, // Include refresh token in the request body
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      
+      if (response.data && response.data.accessToken) {
+        // Update the token in cookies with the new access token
+        Cookies.set("refreshToken", response.data.accessToken);
+        return true;
+      }
+      return false;
+    } catch (error) {
+      console.error("Failed to refresh token:", error);
+      return false;
+    }
   };
 
   const handleUserDomain = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -48,13 +88,23 @@ const ChangeProfile = () => {
         }
       );
       if (response.data) {
-        // fetchUserDetails();
+        // Store user details
         secureLocalStorage.setItem(
           "userDetails",
           JSON.stringify(response.data)
         );
 
-        // console.log("ProfileIsDone", response.data.isProfileDone);
+        // Immediately update the refresh token with new domain
+        const refreshed = await refreshToken();
+        
+        if (!refreshed) {
+          setOpenToast(true);
+          setToastContent({
+            message: "Profile updated but token refresh failed",
+            type: "warning",
+          });
+        }
+
         setIsProfile(response.data.isProfileDone);
         if (response.data.isProfileDone) {
           setOpenToast(true);
@@ -74,7 +124,6 @@ const ChangeProfile = () => {
       setError(false);
       setIsDomainChanged(false);
     } catch (error) {
-      // console.log(error);
       setOpenToast(true);
       setToastContent({
         message: "Invalid Username or Password",
@@ -100,14 +149,14 @@ const ChangeProfile = () => {
           },
         }
       );
-      // console.log(response.data);
-      // TODO: After updating, show some message and redirect to dashboard
       secureLocalStorage.setItem("userDetails", JSON.stringify(response.data));
-
-      // console.log("ProfileIsDone", response.data.isProfileDone);
-      setIsProfile(response.data.isProfileDone);
+      
+      if(token){
+        const decoded = jwtDecode<CustomJwtPayload>(token);
+        setIsProfile(decoded.isProfileDone === true);
+      }
     } catch (error) {
-      // console.log(error);
+      console.error("Error fetching user details:", error);
     }
   };
 
@@ -115,7 +164,6 @@ const ChangeProfile = () => {
     const localData = secureLocalStorage.getItem("userDetails");
     if (typeof localData === "string") {
       const data = JSON.parse(localData);
-      // console.log(data.domain);
       setDomain(data?.domain || []);
     } else {
       console.error(
@@ -126,10 +174,11 @@ const ChangeProfile = () => {
   }, []);
 
   useEffect(() => {
-    const userDetailsstore = secureLocalStorage.getItem("userDetails");
-    if (typeof userDetailsstore === "string") {
-      const userDetails = JSON.parse(userDetailsstore);
-      setIsProfile(userDetails.isProfileDone);
+    const token = Cookies.get("jwtToken");
+    if(token){
+      const decoded = jwtDecode<CustomJwtPayload>(token);
+      setIsProfile(decoded.isProfileDone === true);
+      fetchUserDetails(); // Fetch latest user details when component mounts
     }
   }, []);
 
@@ -201,7 +250,7 @@ const ChangeProfile = () => {
         ) : (
           <section className="flex items-start text-xs md:text-base lg:items-center flex-col lg:flex-row mt-8">
             <p className="w-full text-xl">
-              Fill the profile to update the domain
+              Profile Updated Successfully
             </p>
           </section>
         )}
