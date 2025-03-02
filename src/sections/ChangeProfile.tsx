@@ -10,7 +10,6 @@ import { jwtDecode, JwtPayload } from "jwt-decode";
 interface CustomJwtPayload extends JwtPayload {
   isProfileDone?: boolean; 
 }
-
 const ChangeProfile = () => {
   const navigator = useNavigate();
   const [domain, setDomain] = useState<string[]>([]);
@@ -150,7 +149,6 @@ const ChangeProfile = () => {
         }
       );
       secureLocalStorage.setItem("userDetails", JSON.stringify(response.data));
-      
       if(token){
         const decoded = jwtDecode<CustomJwtPayload>(token);
         setIsProfile(decoded.isProfileDone === true);
