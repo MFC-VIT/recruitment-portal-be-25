@@ -233,6 +233,7 @@ const login = async (req, res) => {
         console.log(`User token login: ${token}`);
         res.status(200).json({
           token,
+          refreshToken,
           id: user._id,
           username: user.username,
           email: user.email,
