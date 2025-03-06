@@ -35,34 +35,52 @@ const getUserByRegNo = async (req,res) => {
   console.log(user.id)
 
   const userData = await UserModel.aggregate([
-    {
-      $match: { _id: new mongoose.Types.ObjectId(user.id) },
-    },
-    {
-      $lookup: {
-              from: "techtasks",
-              localField: "_id",
-              foreignField: "user_id",
-              as: "techTasks",
-            },
-          },
-          {
-            $lookup: {
-              from: "designtasks",
-              localField: "_id",
-              foreignField: "user_id",
-              as: "designTasks",
-            },
-          },
-          {
-            $lookup: {
-              from: "managementtasks",
-              localField: "_id",
-              foreignField: "user_id",
-              as: "managementTasks",
-            },
-          }
-  ])
+      {
+        $match: { _id: new mongoose.Types.ObjectId(user.id) },
+      },
+      {
+        $lookup: {
+          from: "techtasks",
+          let: { userId: "$_id" },
+          pipeline: [
+            { $match: { $expr: { $eq: ["$user_id", "$$userId"] } } },
+            { $sort: { createdAt: -1 } },
+            { $limit: 1 } 
+          ],
+          as: "techTasks",
+        },
+      },
+      { $unwind: { path: "$techtasks", preserveNullAndEmptyArrays: true } },
+    
+      {
+        $lookup: {
+          from: "designtasks",
+          let: { userId: "$_id" },
+          pipeline: [
+            { $match: { $expr: { $eq: ["$user_id", "$$userId"] } } },
+            { $sort: { createdAt: -1 } },
+            { $limit: 1 }
+          ],
+          as: "designTasks",
+        },
+      },
+      { $unwind: { path: "$designtasks", preserveNullAndEmptyArrays: true } },
+    
+      {
+        $lookup: {
+          from: "managementtasks",
+          let: { userId: "$_id" },
+          pipeline: [
+            { $match: { $expr: { $eq: ["$user_id", "$$userId"] } } },
+            { $sort: { createdAt: -1 } },
+            { $limit: 1 }
+          ],
+          as: "managementTasks",
+        },
+      },
+      { $unwind: { path: "$managementtasks", preserveNullAndEmptyArrays: true } },
+    ]);
+    
 
   console.log(user)
 
