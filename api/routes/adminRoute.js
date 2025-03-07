@@ -54,7 +54,7 @@ router.put(
   makeAdmin
 );
 
-router.get(
+router.post(
   "/response",
   // validateToken,
   // validateVerify,
