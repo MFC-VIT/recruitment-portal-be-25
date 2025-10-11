@@ -199,14 +199,7 @@ const uploadDesignTech = async (req, res) => {
       question7: question7,
       question8: question8,
       question9: question9,
-      question10: question10,
-      question11: question11,
-      question12: question12,
-      question13: question13,
-      question14: question14,
-      question15: question15,
       subdomain: subdomain,
-      isDone: true,
     });
     const savedTask = await task.save();
 

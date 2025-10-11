@@ -63,7 +63,7 @@ const signUp = async (req, res) => {
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
     console.log("Hashed Password: ", hashedPassword);
-    const isJC = regno.startsWith("23");
+    const isJC = regno.startsWith("24");
     const isSC = !isJC;
 
     const newUser = new UserModel({
@@ -222,7 +222,6 @@ const login = async (req, res) => {
             isTechDone: user.isTechDone,
             isManagementDone: user.isManagementDone,
             isDesignDone: user.isDesignDone,
-            isDomainUpdated: user.isDomainUpdated,
             domain: user.domain,
             isJC: user.isJC,
             isSC: user.isSC,
@@ -244,7 +243,6 @@ const login = async (req, res) => {
             isTechDone: user.isTechDone,
             isManagementDone: user.isManagementDone,
             isDesignDone: user.isDesignDone,
-            isDomainUpdated: user.isDomainUpdated,
             domain: user.domain,
             isJC: user.isJC,
             isSC: user.isSC,
@@ -326,7 +324,6 @@ const refreshToken = async (req, res) => {
             admin: user.admin,
             isProfileDone : user.isProfileDone,
             isTechDone: user.isTechDone,
-            isDomainUpdated: user.isDomainUpdated,
             isManagementDone: user.isManagementDone,
             isDesignDone: user.isDesignDone,
             domain: user.domain,
