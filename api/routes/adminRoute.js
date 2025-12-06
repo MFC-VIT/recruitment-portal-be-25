@@ -43,7 +43,7 @@ router.put(
   "/updatestatus/:id",
   validateToken,
   validateVerify,
-  isAdmin,
+  // isAdmin,
   updateUserStatus
 );
 router.put(
@@ -61,5 +61,4 @@ router.post(
   // isAdmin,
   getUserByRegNo
 )
-
 module.exports = router;

@@ -6,7 +6,7 @@ const {
   resendOTP,
   requestPasswordReset,
   updatePassword,
-  refreshToken,
+  refreshToken, 
 } = require("../controllers/authController");
 const { rateLimiter_10min_10req } = require("../middleware/ratelimiter");
 

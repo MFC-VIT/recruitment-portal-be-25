@@ -9,7 +9,7 @@ const UserSchema = new Schema(
       trim: true,
     },
     email: {
-     type: String,
+      type: String,
       trim: true,
       lowercase: true,
     },
@@ -25,21 +25,39 @@ const UserSchema = new Schema(
       required: true,
       default: false,
     },
-    roundOne: {
-      type: Boolean,
-      required: true,
-      default: false,
-    },
-    roundTwo: {
-      type: Boolean,
-      required: true,
-      default: false,
-    },
-    roundThree: {
-      type: Boolean,
-      required: true,
-      default: false,
-    },
+    // roundOne: {
+    //   type: Boolean,
+    //   required: true,
+    //   default: false,
+    // },
+    // roundTwo: {
+    //   type: Boolean,
+    //   required: true,
+    //   default: false,
+    // },
+    // roundThree: {
+    //   type: Boolean,
+    //   required: true,
+    //   default: false,
+    // },
+
+      tech: {
+        type: Number,
+        required: true,
+        default: 0
+      },
+      design: {
+        type: Number,
+        required: true,
+        default: 0
+      },
+      management: {
+        type: Number,
+        required: true,
+        default: 0
+      },
+
+
     isCore: {
       type: Boolean,
       required: true,
@@ -72,7 +90,7 @@ const UserSchema = new Schema(
     },
     prevAccessToken: {
       type: [String],
-      default: []
+      default: [],
     },
     isProfileDone: {
       type: Boolean,
