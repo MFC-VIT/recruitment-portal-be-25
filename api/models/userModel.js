@@ -41,22 +41,21 @@ const UserSchema = new Schema(
     //   default: false,
     // },
 
-      tech: {
-        type: Number,
-        required: true,
-        default: 0
-      },
-      design: {
-        type: Number,
-        required: true,
-        default: 0
-      },
-      management: {
-        type: Number,
-        required: true,
-        default: 0
-      },
-
+    tech: {
+      type: Number,
+      required: true,
+      default: 0,
+    },
+    design: {
+      type: Number,
+      required: true,
+      default: 0,
+    },
+    management: {
+      type: Number,
+      required: true,
+      default: 0,
+    },
 
     isCore: {
       type: Boolean,
@@ -129,6 +128,10 @@ const UserSchema = new Schema(
     isTechDone: {
       type: Boolean,
       default: false,
+    },
+    googleRefreshToken: {
+      type: String,
+      default: null,
     },
   },
   { timestamps: true }
