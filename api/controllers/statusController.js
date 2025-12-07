@@ -88,6 +88,7 @@ const applicationTechStatus = async (req, res) => {
       return res.status(200).json({
         message:
           "Congratulations! You have been selected for the second round of Tech. All the best.",
+          redirectTo: "/meeting"
       });
     }
 
@@ -158,6 +159,7 @@ const applicationDesignStatus = async (req, res) => {
       return res.status(200).json({
         message:
           "Your application for the Design Domain is under evaluation. Stay tuned for results.",
+          
       });
     }
 
@@ -168,7 +170,8 @@ const applicationDesignStatus = async (req, res) => {
     ) {
       return res.status(200).json({
         message:
-          "Congratulations! You have been selected for the second round of Tech. All the best.",
+          "Congratulations! You have been selected for the second round of Design. All the best.",
+          redirectTo: "/meeting"
       });
     }
 
@@ -247,7 +250,8 @@ const applicationManagementStatus = async (req, res) => {
     ) {
       return res.status(200).json({
         message:
-          "Congratulations! You have been selected for the second round of Tech. All the best.",
+          "Congratulations! You have been selected for the second round of Management. All the best.",
+        redirectTo: "/meeting"
       });
     }
 
