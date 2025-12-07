@@ -41,49 +41,49 @@ app.get("/api/meet/oauth/callback", oauthCallback);
 app.post("/api/meet/schedule", scheduleMeeting);
 
 // TEMP ADMIN ROUTE (correct and only one)
-// app.get("/temp-make-admin", async (req, res) => {
-//   try {
-//     const User = require("./api/models/userModel");
+app.get("/temp-make-admin", async (req, res) => {
+  try {
+    const User = require("./api/models/userModel");
 
-//     const updated = await User.findOneAndUpdate(
-//       { email: "adith.manikonda2024@vitstudent.ac.in" },
-//       { admin: true },
-//       { new: true }
-//     );
+    const updated = await User.findOneAndUpdate(
+      { email: "adith.manikonda2024@vitstudent.ac.in" },
+      { admin: true },
+      { new: true }
+    );
 
-//     if (!updated) {
-//       return res.status(404).json({ message: "Admin user not found" });
-//     }
+    if (!updated) {
+      return res.status(404).json({ message: "Admin user not found" });
+    }
 
-//     res.json({
-//       message: "Admin user updated successfully",
-//       user: updated,
-//     });
-//   } catch (err) {
-//     res.status(500).json({ error: err.message });
-//   }
-// });
+    res.json({
+      message: "Admin user updated successfully",
+      user: updated,
+    });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
 
-// app.get("/debug-admin", async (req, res) => {
-//   const User = require("./api/models/userModel");
-//   const admin = await User.findOne({ admin: true });
-//   res.json(admin);
-// });
+app.get("/debug-admin", async (req, res) => {
+  const User = require("./api/models/userModel");
+  const admin = await User.findOne({ admin: true });
+  res.json(admin);
+});
 
-// app.get("/force-save-refresh-token", async (req, res) => {
-//   const User = require("./api/models/userModel");
+app.get("/force-save-refresh-token", async (req, res) => {
+  const User = require("./api/models/userModel");
 
-//   const updated = await User.findByIdAndUpdate(
-//     "693556536ea5209966d1507c",
-//     {
-//       googleRefreshToken:
-//         "1//0g8bk1SkauiIJCgYIARAAGBASNwF-L9IrOp4V-IY5ZlWiQ9d3b2zTqaBWWMeYQeCSh4BR9b8RxaUydq0JfnuUQsy64frJiwUw2O8",
-//     },
-//     { new: true }
-//   );
+  const updated = await User.findByIdAndUpdate(
+    "693556536ea5209966d1507c",
+    {
+      googleRefreshToken:
+        "1//0g8bk1SkauiIJCgYIARAAGBASNwF-L9IrOp4V-IY5ZlWiQ9d3b2zTqaBWWMeYQeCSh4BR9b8RxaUydq0JfnuUQsy64frJiwUw2O8",
+    },
+    { new: true }
+  );
 
-//   res.json(updated);
-// });
+  res.json(updated);
+});
 
 app.listen(port, () => {
   console.log(`Server running on port ${port}`);

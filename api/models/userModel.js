@@ -74,6 +74,7 @@ const UserSchema = new Schema(
     domain: {
       type: [String],
       enum: ["tech", "design", "management"],
+      default: [],
     },
     // volunteered: {
     //   type: Boolean,

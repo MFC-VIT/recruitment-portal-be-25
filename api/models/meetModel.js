@@ -1,3 +1,4 @@
+const { analyticsdata_v1alpha } = require("googleapis");
 const mongoose = require("mongoose");
 const Schema = mongoose.Schema;
 
@@ -9,8 +10,11 @@ const MeetSchema = new Schema(
       required: true,
     },
     intervieweremail: {
-      type: String,
-      default: "adithyanachiyappan.2024@vitstudent.ac.in",
+      type: [String],
+      default: [
+        "adithyanachiyappan.2024@vitstudent.ac.in",
+        "adith.manikonda2024@vitstudent.ac.in",
+      ],
     },
     scheduledTime: {
       type: Date,
