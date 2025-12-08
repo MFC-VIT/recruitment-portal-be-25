@@ -73,7 +73,7 @@ const applicationTechStatus = async (req, res) => {
       });
     }
 
-    if (user.domain.includes("tech") && user.isTechDone && !user.roundOne) {
+    if (user.domain.includes("tech") && user.isTechDone && user.tech==0) {
       return res.status(200).json({
         message:
           "Your application for the Tech Domain is under evaluation. Stay tuned for results.",
@@ -83,21 +83,19 @@ const applicationTechStatus = async (req, res) => {
     if (
       user.domain.includes("tech") &&
       user.isTechDone &&
-      user.roundOne &&
-      !user.roundTwo
+      user.tech==1
     ) {
       return res.status(200).json({
         message:
           "Congratulations! You have been selected for the second round of Tech. All the best.",
+          redirectTo: "/meeting"
       });
     }
 
     if (
       user.domain.includes("tech") &&
       user.isTechDone &&
-      user.roundOne &&
-      user.roundTwo &&
-      !user.roundThree
+      user.tech==2
     ) {
       return res.status(200).json({
         message:
@@ -108,9 +106,7 @@ const applicationTechStatus = async (req, res) => {
     if (
       user.domain.includes("tech") &&
       user.isTechDone &&
-      user.roundOne &&
-      user.roundTwo &&
-      user.roundThree &&
+      user.tech==3 &&
       user.isCore
     ) {
       return res.status(200).json({
@@ -159,31 +155,30 @@ const applicationDesignStatus = async (req, res) => {
       });
     }
 
-    if (user.domain.includes("design") && user.isDesignDone && !user.roundOne) {
+    if (user.domain.includes("design") && user.isDesignDone && user.design==0) {
       return res.status(200).json({
         message:
           "Your application for the Design Domain is under evaluation. Stay tuned for results.",
+          
       });
     }
 
     if (
       user.domain.includes("design") &&
       user.isDesignDone &&
-      user.roundOne &&
-      !user.roundTwo
+      user.design==1
     ) {
       return res.status(200).json({
         message:
-          "Congratulations! You have been selected for the second round of Tech. All the best.",
+          "Congratulations! You have been selected for the second round of Design. All the best.",
+          redirectTo: "/meeting"
       });
     }
 
     if (
       user.domain.includes("design") &&
       user.isDesignDone &&
-      user.roundOne &&
-      user.roundTwo &&
-      !user.roundThree
+      user.design==2
     ) {
       return res.status(200).json({
         message:
@@ -194,9 +189,7 @@ const applicationDesignStatus = async (req, res) => {
     if (
       user.domain.includes("design") &&
       user.isDesignDone &&
-      user.roundOne &&
-      user.roundTwo &&
-      user.roundThree &&
+      user.design==3 &&
       user.isCore
     ) {
       return res.status(200).json({
@@ -242,7 +235,7 @@ const applicationManagementStatus = async (req, res) => {
     if (
       user.domain.includes("management") &&
       user.isManagementDone &&
-      !user.roundOne
+      user.management==0
     ) {
       return res.status(200).json({
         message:
@@ -253,21 +246,19 @@ const applicationManagementStatus = async (req, res) => {
     if (
       user.domain.includes("management") &&
       user.isManagementDone &&
-      user.roundOne &&
-      !user.roundTwo
+      user.management==1
     ) {
       return res.status(200).json({
         message:
-          "Congratulations! You have been selected for the second round of Tech. All the best.",
+          "Congratulations! You have been selected for the second round of Management. All the best.",
+        redirectTo: "/meeting"
       });
     }
 
     if (
       user.domain.includes("management") &&
       user.isManagementDone &&
-      user.roundOne &&
-      user.roundTwo &&
-      !user.roundThree
+      user.management==2
     ) {
       return res.status(200).json({
         message:
@@ -278,9 +269,7 @@ const applicationManagementStatus = async (req, res) => {
     if (
       user.domain.includes("management") &&
       user.isManagementDone &&
-      user.roundOne &&
-      user.roundTwo &&
-      user.roundThree &&
+      user.management==3 &&
       user.isCore
     ) {
       return res.status(200).json({
