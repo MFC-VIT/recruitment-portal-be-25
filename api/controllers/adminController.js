@@ -160,9 +160,9 @@ const getAllUser = async (req, res) => {
           volunteeredEvent: 1,
           participated: 1,
           participatedEvent: 1,
-          roundOne: 1,
-          roundTwo: 1,
-          roundThree: 1,
+          tech: 1,
+          design: 1,
+          management: 1,
           isProfileDone: 1,
           techTasks: {
             $filter: {
@@ -450,7 +450,7 @@ const getAllUserManagement = async (req, res) => {
 };
 
 const updateUserStatus = async (req, res) => {
-  const { regno, roundOne, roundTwo, roundThree } = req.body;
+  const { regno, tech, design, management } = req.body;
   const successMessages = [];
   const errorMessages = [];
 
@@ -459,26 +459,26 @@ const updateUserStatus = async (req, res) => {
       return res.status(400).json({ message: "Regno is required" });
     }
 
-    for (const reg of regno) {
-      const user = await UserModel.findOne({ regno: reg });
+    // for (const reg of regno) {
+      const user = await UserModel.findOne({ regno: regno });
       if (!user) {
-        errorMessages.push(`User with regno ${reg} not found`);
-        continue;
+        errorMessages.push(`User with regno ${regno} not found`);
+        // continue;
       }
 
-      if (roundOne !== undefined) {
-        user.roundOne = roundOne;
+      if (tech !== undefined) {
+        user.tech = tech;
       }
-      if (roundTwo !== undefined) {
-        user.roundTwo = roundTwo;
+      if (design !== undefined) {
+        user.design = design;
       }
-      if (roundThree !== undefined) {
-        user.roundThree = roundThree;
+      if (management !== undefined) {
+        user.management = management;
       }
 
       await user.save();
-      successMessages.push(`User with regno ${reg} updated successfully`);
-    }
+      successMessages.push(`User with regno ${regno} updated successfully`);
+    // }
 
     // const response = {
     //   successMessages: successMessages,
