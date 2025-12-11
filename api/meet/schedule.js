@@ -157,4 +157,74 @@ const scheduleMeeting = async (req, res) => {
   }
 };
 
-module.exports = { scheduleMeeting };
+const cancelMeeting = async (req, res) => {
+  try {
+    const { candidateId } = req.body; // or bookingId, depending on your frontend
+
+    if (!candidateId) {
+      return res.status(400).json({ error: "Missing candidateId" });
+    }
+
+    // 1. Find the booking details
+    const booking = await MeetDetails.findOne({ user_id: candidateId });
+    if (!booking) {
+      return res.status(404).json({ error: "No booking found for this candidate" });
+    }
+
+    // 2. Setup Google Calendar Auth (Same as scheduleMeeting)
+    const adminUser = await User.findOne({ admin: true });
+    if (!adminUser || !adminUser.googleRefreshToken) {
+      return res.status(400).json({ error: "Admin Google Token missing" });
+    }
+
+    const oauth = new google.auth.OAuth2(
+      process.env.GOOGLE_CLIENT_ID,
+      process.env.GOOGLE_CLIENT_SECRET,
+      process.env.GOOGLE_REDIRECT_URI
+    );
+    oauth.setCredentials({ refresh_token: adminUser.googleRefreshToken });
+    const calendar = google.calendar({ version: "v3", auth: oauth });
+
+    // 3. Delete from Google Calendar
+    try {
+      await calendar.events.delete({
+        calendarId: "primary",
+        eventId: booking.googleEventId, // You saved this in MeetDetails during scheduling
+      });
+    } catch (googleError) {
+      console.warn("Google Event not found or already deleted:", googleError.message);
+      // We continue execution to ensure DB is cleaned up even if Calendar fails
+    }
+
+    // 4. Update the InterviewSlot (Free up the space)
+    // We assume slot is identified by the start time stored in the booking
+    const slotDoc = await InterviewSlot.findOne({ startTime: booking.scheduledTime });
+    
+    if (slotDoc) {
+      slotDoc.bookedCount = Math.max(0, slotDoc.bookedCount - 1); // Prevent negative numbers
+      
+      // If it was full, it is no longer full
+      if (slotDoc.status === "full" && slotDoc.bookedCount < MAX_BOOKINGS) {
+        slotDoc.status = "open"; // Or whatever your default status string is
+      }
+      await slotDoc.save();
+    }
+
+    // 5. Remove from Database
+    await MeetDetails.deleteOne({ _id: booking._id });
+
+    // 6. (Optional) Send Cancellation Email
+    // You can add a transporter.sendMail(...) here similar to the schedule function
+
+    return res.json({
+      success: true,
+      message: "Booking cancelled and slot freed successfully",
+    });
+
+  } catch (err) {
+    console.error("Error cancelling meeting:", err);
+    return res.status(500).json({ error: "Failed to cancel meeting" });
+  }
+};
+
+module.exports = { scheduleMeeting, cancelMeeting };
