@@ -4,10 +4,10 @@ const User = require("../models/userModel");
 const InterviewSlot = require("../models/interviewModel");
 const nodemailer = require("nodemailer");
 
-// CONSTANTS
-const MAX_BOOKINGS = 3; // Set whatever limit depending on the amount of interviewers we have
+// Number of Bookings Allowed Per Slots 
+const MAX_BOOKINGS = 3; 
 
-// Interviewer List , Update when necessary
+// Interviewer List , Update Before Deployment
 const INTERVIEWERS = [
   "adith.manikonda2024@vitstudent.ac.in",
   "adithyanachiyappan.2024@vitstudent.ac.in",
@@ -38,14 +38,24 @@ function emailTemplate({ candidateName, date, start, end, meetLink }) {
 
 const scheduleMeeting = async (req, res) => {
   try {
-    const { candidateId, domains, slot } = req.body;
-    if (!candidateId || !slot) {
-      return res.status(400).json({ error: "Missing required fields: candidateId or slot" });
+    // Request for these three from the Frontend - Switched Slot for scheduleTime 
+    const { candidateId, domains, scheduletime } = req.body;
+    
+    if (!candidateId || !scheduletime) {
+      return res.status(400).json({ error: "Missing required fields: candidateId or scheduletime" });
     }
 
-    const slotDoc = await InterviewSlot.findOne({ slotNumber: slot });
+    // Convert string to Date object for accurate comparison
+    const requestedTime  = new Date(scheduletime);
+    
+    
+    
+
+    //Find slot by matching the startTime in the DB
+    const slotDoc = await InterviewSlot.findOne({ startTime: requestedTime });
+
     if (!slotDoc) {
-      return res.status(404).json({ error: "Invalid slot number" });
+      return res.status(404).json({ error: "No interview slot found for this time." });
     }
 
     // Check if Slot is Booked Out
@@ -53,7 +63,7 @@ const scheduleMeeting = async (req, res) => {
       return res.status(409).json({ error: "This slot is fully booked." });
     }
 
-    //Check for Existing Slot for the Same Candidate
+    // Check for Existing Slot for the Same Candidate
     const existingBooking = await MeetDetails.findOne({ 
       user_id: candidateId, 
     });
@@ -77,8 +87,6 @@ const scheduleMeeting = async (req, res) => {
     );
     oauth.setCredentials({ refresh_token: adminUser.googleRefreshToken });
     const calendar = google.calendar({ version: "v3", auth: oauth });
-
-    // Use times from Interview Slots Table
     const startDate = new Date(slotDoc.startTime);
     const endDate = new Date(slotDoc.endTime);
 
@@ -107,13 +115,12 @@ const scheduleMeeting = async (req, res) => {
 
     const meetLink = response.data.hangoutLink;
     const eventId = response.data.id;
-    slotDoc.bookedCount += 1;
     
-    // Check for Limit
+    // Update Slot Counts
+    slotDoc.bookedCount += 1;
     if (slotDoc.bookedCount >= MAX_BOOKINGS) {
       slotDoc.status = "full";
     }
-    
     await slotDoc.save();
 
     const entry = await MeetDetails.create({
@@ -157,4 +164,63 @@ const scheduleMeeting = async (req, res) => {
   }
 };
 
-module.exports = { scheduleMeeting };
+const cancelMeeting = async (req, res) => {
+  try {
+    const { candidateId } = req.body; 
+
+    if (!candidateId) {
+      return res.status(400).json({ error: "Missing candidateId" });
+    }
+
+    const booking = await MeetDetails.findOne({ user_id: candidateId });
+    if (!booking) {
+      return res.status(404).json({ error: "No booking found for this candidate" });
+    }
+
+    const adminUser = await User.findOne({ admin: true });
+    if (!adminUser || !adminUser.googleRefreshToken) {
+      return res.status(400).json({ error: "Admin Google Token missing" });
+    }
+
+    const oauth = new google.auth.OAuth2(
+      process.env.GOOGLE_CLIENT_ID,
+      process.env.GOOGLE_CLIENT_SECRET,
+      process.env.GOOGLE_REDIRECT_URI
+    );
+    oauth.setCredentials({ refresh_token: adminUser.googleRefreshToken });
+    const calendar = google.calendar({ version: "v3", auth: oauth });
+
+    try {
+      await calendar.events.delete({
+        calendarId: "primary",
+        eventId: booking.googleEventId, 
+      });
+    } catch (googleError) {
+      console.warn("Google Event not found or already deleted:", googleError.message);
+    }
+
+    const slotDoc = await InterviewSlot.findOne({ startTime: booking.scheduledTime });
+    
+    if (slotDoc) {
+      slotDoc.bookedCount = Math.max(0, slotDoc.bookedCount - 1); 
+      
+      if (slotDoc.status === "full" && slotDoc.bookedCount < MAX_BOOKINGS) {
+        slotDoc.status = "free"; 
+      }
+      await slotDoc.save();
+    }
+
+    await MeetDetails.deleteOne({ _id: booking._id });
+
+    return res.json({
+      success: true,
+      message: "Booking cancelled and slot freed successfully",
+    });
+
+  } catch (err) {
+    console.error("Error cancelling meeting:", err);
+    return res.status(500).json({ error: "Failed to cancel meeting" });
+  }
+};
+
+module.exports = { scheduleMeeting, cancelMeeting };

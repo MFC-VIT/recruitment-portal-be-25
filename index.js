@@ -7,12 +7,9 @@ const userRoute = require("./api/routes/userRoute");
 const taskRoute = require("./api/routes/taskRoute");
 const adminRoute = require("./api/routes/adminRoute");
 const statusRoute = require("./api/routes/statusRoute");
+const meetRoute = require("./api/routes/meetRoute");
 const connectDb = require("./api/db/dbConnection");
 
-// Google OAuth handlers
-const { oauthInit } = require("./api/meet/oauthInit");
-const { oauthCallback } = require("./api/meet/oauthCallback");
-const { scheduleMeeting } = require("./api/meet/schedule");
 
 connectDb();
 
@@ -34,11 +31,9 @@ app.use("/user", userRoute);
 app.use("/upload", taskRoute);
 app.use("/admin", adminRoute);
 app.use("/applicatiostatus", statusRoute);
-
+app.use("/api/meet",meetRoute);
 // Google Meet OAuth Routes
-app.get("/api/meet/auth", oauthInit);
-app.get("/api/meet/oauth/callback", oauthCallback);
-app.post("/api/meet/schedule", scheduleMeeting);
+
 
 // TEMP ADMIN ROUTE (correct and only one)
 app.get("/temp-make-admin", async (req, res) => {
