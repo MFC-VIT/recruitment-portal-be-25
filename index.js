@@ -10,7 +10,6 @@ const statusRoute = require("./api/routes/statusRoute");
 const meetRoute = require("./api/routes/meetRoute");
 const connectDb = require("./api/db/dbConnection");
 
-
 connectDb();
 
 const app = express();
@@ -31,9 +30,13 @@ app.use("/user", userRoute);
 app.use("/upload", taskRoute);
 app.use("/admin", adminRoute);
 app.use("/applicatiostatus", statusRoute);
-app.use("/api/meet",meetRoute);
+app.use("/api/meet", meetRoute);
+// Backwards-compatible endpoints used by the frontend (some FE code calls these root paths)
+// Keep these mounted in addition to /api/meet so we don't need to change the frontend.
+const { scheduleMeeting, cancelMeeting } = require("./api/meet/schedule");
+app.post("/schedule", scheduleMeeting);
+app.post("/cancel", cancelMeeting);
 // Google Meet OAuth Routes
-
 
 // TEMP ADMIN ROUTE (correct and only one)
 app.get("/temp-make-admin", async (req, res) => {
