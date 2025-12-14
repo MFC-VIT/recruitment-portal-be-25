@@ -9,6 +9,7 @@ const bcrypt = require("bcrypt");
 const crypto = require("crypto");
 const nodemailer = require("nodemailer");
 const { v4: uuidv4 } = require("uuid");
+const MeetDetails = require("../models/meetModel");
 
 require("dotenv").config();
 const signUp = async (req, res) => {
@@ -201,6 +202,7 @@ const login = async (req, res) => {
       email: email,
       verified: true,
     });
+    const meet = await MeetDetails.findOne({ user_id: user?._id });
 
     if (user && user.verified) {
       const validity = await bcrypt.compare(password, user.password);
@@ -267,7 +269,8 @@ const login = async (req, res) => {
           regno: user.regno,
           verified: user.verified,
           admin: user.admin,
-          gmeetlink: user.gmeetlink || null,
+          gmeetlink: meet ? meet.gmeetLink : null,
+          meeting: meet || null,
         });
       }
     } else {
