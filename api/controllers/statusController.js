@@ -93,12 +93,14 @@ const applicationTechStatus = async (req, res) => {
     if (!user) {
       return res.status(404).json({
         message: "User not found",
+        passed: 0,
       });
     }
 
     if (!user.domain.includes("tech")) {
       return res.status(200).json({
         message: "You have not applied for the Tech Domain.",
+        passed: 0,
       });
     }
 
@@ -106,6 +108,7 @@ const applicationTechStatus = async (req, res) => {
       return res.status(200).json({
         message:
           "Your application for the Tech Domain is not submitted. Kindly complete and submit it for evaluation.",
+        passed: 0,
       });
     }
 
@@ -119,6 +122,7 @@ const applicationTechStatus = async (req, res) => {
       return res.status(200).json({
         message:
           "Your application for the Tech Domain is under evaluation. Stay tuned for results.",
+        passed: 0,
       });
     }
 
@@ -127,6 +131,7 @@ const applicationTechStatus = async (req, res) => {
         message:
           "Congratulations! You have been selected for the second round of Tech. All the best.",
         redirectTo: "/meeting",
+        passed: 1,
       });
     }
 
@@ -166,12 +171,14 @@ const applicationDesignStatus = async (req, res) => {
     if (!user) {
       return res.status(404).json({
         message: "User not found",
+        passed: 0,
       });
     }
 
     if (!user.domain.includes("design")) {
       return res.status(200).json({
         message: "You have not applied for the design Domain.",
+        passed: 0,
       });
     }
 
@@ -179,6 +186,7 @@ const applicationDesignStatus = async (req, res) => {
       return res.status(200).json({
         message:
           "Your application for the Design Domain is not submitted. Kindly complete and submit it for evaluation.",
+          passed: 0,
       });
     }
 
@@ -200,6 +208,8 @@ const applicationDesignStatus = async (req, res) => {
       return res.status(200).json({
         message:
           "Your application for the Design Domain is under evaluation. Stay tuned for results.",
+          passed: 0,
+          
       });
     }
 
@@ -211,7 +221,8 @@ const applicationDesignStatus = async (req, res) => {
       return res.status(200).json({
         message:
           "Congratulations! You have been selected for the second round of Design. All the best.",
-        redirectTo: "/meeting",
+          redirectTo: "/meeting",
+          passed: 1,
       });
     }
 
@@ -255,12 +266,14 @@ const applicationManagementStatus = async (req, res) => {
     if (!user) {
       return res.status(404).json({
         message: "User not found",
+        passed: 0,
       });
     }
 
     if (!user.domain.includes("management")) {
       return res.status(200).json({
         message: "You have not applied for the management Domain.",
+        passed: 0,
       });
     }
 
@@ -268,6 +281,7 @@ const applicationManagementStatus = async (req, res) => {
       return res.status(200).json({
         message:
           "Your application for the management Domain is not submitted. Kindly complete and submit it for evaluation.",
+          passed: 0,
       });
     }
 
@@ -279,6 +293,7 @@ const applicationManagementStatus = async (req, res) => {
       return res.status(200).json({
         message:
           "Your application for the management Domain is under evaluation. Stay tuned for results.",
+          passed: 0,
       });
     }
 
@@ -302,6 +317,7 @@ const applicationManagementStatus = async (req, res) => {
         message:
           "Congratulations! You have been selected for the second round of Management. All the best.",
         redirectTo: "/meeting",
+        passed: 1,
       });
     }
 
