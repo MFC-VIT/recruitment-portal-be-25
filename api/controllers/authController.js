@@ -218,7 +218,7 @@ const login = async (req, res) => {
             design: user.design,
             management: user.management,
             admin: user.admin,
-            isProfileDone : user.isProfileDone,
+            isProfileDone: user.isProfileDone,
             isTechDone: user.isTechDone,
             isManagementDone: user.isManagementDone,
             isDesignDone: user.isDesignDone,
@@ -230,7 +230,8 @@ const login = async (req, res) => {
         );
 
         const refreshToken = jwt.sign(
-          { id: user._id,
+          {
+            id: user._id,
             username: user.username,
             email: user.email,
             regno: user.regno,
@@ -239,7 +240,7 @@ const login = async (req, res) => {
             design: user.design,
             management: user.management,
             admin: user.admin,
-            isProfileDone : user.isProfileDone,
+            isProfileDone: user.isProfileDone,
             isTechDone: user.isTechDone,
             isManagementDone: user.isManagementDone,
             isDesignDone: user.isDesignDone,
@@ -250,7 +251,7 @@ const login = async (req, res) => {
           process.env.ACCESS_TOKEN_SECERT,
           { expiresIn: "45m" }
         );
-        
+
         // Save refresh token to user
         user.refreshToken = refreshToken;
         await user.save();
@@ -266,19 +267,15 @@ const login = async (req, res) => {
           regno: user.regno,
           verified: user.verified,
           admin: user.admin,
+          gmeetlink: user.gmeetlink || null,
         });
       }
     } else {
       res.status(404).json({ error: "User not found" });
     }
   } catch (error) {
-    const response = new Response(
-      500,
-      null,
-      error.message,
-      false
-    );
-    res.status(500).json(response)
+    const response = new Response(500, null, error.message, false);
+    res.status(500).json(response);
     console.log(error);
   }
 };
@@ -314,21 +311,21 @@ const refreshToken = async (req, res) => {
     const newAccessToken = jwt.sign(
       {
         id: user._id,
-            username: user.username,
-            email: user.email,
-            regno: user.regno,
-            verified: user.verified,
-            tech: user.tech,
-            design: user.design,
-            management: user.management,
-            admin: user.admin,
-            isProfileDone : user.isProfileDone,
-            isTechDone: user.isTechDone,
-            isManagementDone: user.isManagementDone,
-            isDesignDone: user.isDesignDone,
-            domain: user.domain,
-            isJC: user.isJC,
-            isSC: user.isSC,
+        username: user.username,
+        email: user.email,
+        regno: user.regno,
+        verified: user.verified,
+        tech: user.tech,
+        design: user.design,
+        management: user.management,
+        admin: user.admin,
+        isProfileDone: user.isProfileDone,
+        isTechDone: user.isTechDone,
+        isManagementDone: user.isManagementDone,
+        isDesignDone: user.isDesignDone,
+        domain: user.domain,
+        isJC: user.isJC,
+        isSC: user.isSC,
       },
       process.env.ACCESS_TOKEN_SECERT,
       { expiresIn: "45m" }
@@ -339,13 +336,8 @@ const refreshToken = async (req, res) => {
     await user.save();
   } catch (error) {
     console.log(error);
-    const response = new Response(
-      500,
-      null,
-      error.message,
-      false
-    );
-    res.status(response.statusCode).json(response)
+    const response = new Response(500, null, error.message, false);
+    res.status(response.statusCode).json(response);
   }
 };
 
@@ -374,13 +366,8 @@ const requestPasswordReset = async (req, res) => {
       res.status(404).json({ error: "User not found" });
     }
   } catch (error) {
-    const response = new Response(
-      500,
-      null,
-      error.message,
-      false
-    );
-    res.status(response.statusCode).json(response)
+    const response = new Response(500, null, error.message, false);
+    res.status(response.statusCode).json(response);
   }
 };
 
@@ -407,13 +394,8 @@ const updatePassword = async (req, res) => {
       res.status(404).json({ error: "Invalid username or email token." });
     }
   } catch (error) {
-    const response = new Response(
-      500,
-      null,
-      error.message,
-      false
-    );
-    res.status(response.statusCode).json(response)
+    const response = new Response(500, null, error.message, false);
+    res.status(response.statusCode).json(response);
   }
 };
 

@@ -112,6 +112,12 @@ const applicationTechStatus = async (req, res) => {
       });
     }
 
+    if (user.domain.includes("tech") && user.isTechDone && user.tech === -1) {
+      return res.status(200).json({
+        message:
+          "You have not been selected for the Tech Domain. Better luck next time.",
+      });
+    }
     if (user.domain.includes("tech") && user.isTechDone && user.tech === 0) {
       return res.status(200).json({
         message:
@@ -184,6 +190,16 @@ const applicationDesignStatus = async (req, res) => {
       });
     }
 
+    if (
+      user.domain.includes("design") &&
+      user.isDesignDone &&
+      user.design === -1
+    ) {
+      return res.status(200).json({
+        message:
+          "You have not been selected for the Design Domain. Better luck next time.",
+      });
+    }
     if (
       user.domain.includes("design") &&
       user.isDesignDone &&
@@ -281,6 +297,17 @@ const applicationManagementStatus = async (req, res) => {
       });
     }
 
+    if (
+      user.domain.includes("management") &&
+      user.isManagementDone &&
+      user.management === -1
+    ) {
+      return res.status(200).json({
+        message:
+          "You have not been selected for the Management Domain. Better luck next time.",
+        redirectTo: "/meeting",
+      });
+    }
     if (
       user.domain.includes("management") &&
       user.isManagementDone &&
