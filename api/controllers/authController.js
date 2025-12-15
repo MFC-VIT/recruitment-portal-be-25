@@ -271,6 +271,13 @@ const login = async (req, res) => {
           admin: user.admin,
           gmeetlink: meet ? meet.gmeetLink : null,
           meeting: meet || null,
+          scheduledTime:
+            meet && meet.scheduledTime
+              ? new Date(meet.scheduledTime).toISOString()
+              : null,
+          endTime:
+            meet && meet.endTime ? new Date(meet.endTime).toISOString() : null,
+          googleEventId: meet ? meet.googleEventId : null,
         });
       }
     } else {
