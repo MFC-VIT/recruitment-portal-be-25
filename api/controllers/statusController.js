@@ -138,7 +138,7 @@ const applicationTechStatus = async (req, res) => {
     if (user.domain.includes("tech") && user.isTechDone && user.tech === 2) {
       return res.status(200).json({
         message:
-          "Congratulations! You have been selected for the third round. All the best.",
+          "Congratulations! You have made it to Mozilla Firefox Club, VIT.",
       });
     }
 
@@ -233,7 +233,7 @@ const applicationDesignStatus = async (req, res) => {
     ) {
       return res.status(200).json({
         message:
-          "Congratulations! You have been selected for the third round. All the best.",
+          "Congratulations! You have made it to Mozilla Firefox Club, VIT.",
       });
     }
 
@@ -328,7 +328,7 @@ const applicationManagementStatus = async (req, res) => {
     ) {
       return res.status(200).json({
         message:
-          "Congratulations! You have been selected for the third round. All the best.",
+          "Congratulations! You have made it to Mozilla Firefox Club, VIT.",
       });
     }
 
