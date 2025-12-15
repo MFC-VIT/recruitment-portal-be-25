@@ -1,12 +1,18 @@
 const UserModel = require("../models/userModel");
 const mongoose = require("mongoose");
-const Response = require("../utils/responseModel")
+const Response = require("../utils/responseModel");
 
 const UpdateUser = async (req, res) => {
   try {
     const { id } = req.params;
-    const { mobile, emailpersonal, domain, volunteeredEvent, participatedEvent } = req.body;
-    
+    const {
+      mobile,
+      emailpersonal,
+      domain,
+      volunteeredEvent,
+      participatedEvent,
+    } = req.body;
+
     if (!mobile || !emailpersonal || !domain) {
       return res.status(400).json({ message: "All fields are required." });
     }
@@ -17,7 +23,12 @@ const UpdateUser = async (req, res) => {
     }
 
     if (user.isProfileDone) {
-      return res.status(400).json({ message: "Profile update is already completed. Use update profile for modifications." });
+      return res
+        .status(400)
+        .json({
+          message:
+            "Profile update is already completed. Use update profile for modifications.",
+        });
     }
 
     user.mobile = mobile;
@@ -26,7 +37,7 @@ const UpdateUser = async (req, res) => {
     user.volunteeredEvent = volunteeredEvent;
     user.participatedEvent = participatedEvent;
     user.isProfileDone = true;
-    
+
     await user.save();
     return res.status(200).json({ message: "Profile updated successfully." });
   } catch (error) {
@@ -48,17 +59,18 @@ const UpdateUserDomain = async (req, res) => {
       return res.status(404).json({ message: "User not found." });
     }
 
-    user.domain = domain
+    user.domain = domain;
     await user.save();
-    
-    return res.status(200).json({ message: "Domain updated successfully.", user });
+
+    return res
+      .status(200)
+      .json({ message: "Domain updated successfully.", user });
   } catch (error) {
     return res.status(500).json({ message: error.message });
   }
 };
 
 module.exports = { UpdateUser, UpdateUserDomain };
-
 
 const getuser = async (req, res) => {
   try {
@@ -121,29 +133,14 @@ const getuser = async (req, res) => {
     ]);
 
     if (userData.length === 0) {
-      const response = new Response(
-          400,
-          null,
-          "User not found",
-          false
-        )
-        res.status(response.statusCode).json(response);
+      const response = new Response(400, null, "User not found", false);
+      res.status(response.statusCode).json(response);
     }
-    const response = new Response (
-      200,
-      userData[0],
-      "User Data",
-      true
-    )
+    const response = new Response(200, userData[0], "User Data", true);
     res.status(response.statusCode).json(response);
   } catch (error) {
     console.error(error);
-    const response = new Response(
-      500,
-      null,
-      error.message,
-      false
-    )
+    const response = new Response(500, null, error.message, false);
     res.status(response.statusCode).json(response);
   }
 };
