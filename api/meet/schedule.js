@@ -173,6 +173,7 @@ const scheduleMeeting = async (req, res) => {
       message: "Interview scheduled!",
       data: entry,
       gmeetLink: meetLink,
+      meetingStartTime: startDate,
     });
   } catch (err) {
     console.error("Error scheduling meeting:", err);
