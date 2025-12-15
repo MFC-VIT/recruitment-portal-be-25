@@ -6,7 +6,7 @@ const {
   getAllUserTech,
   getAllUserManagement,
   getAllUserDesign,
-  getUserByRegNo
+  getUserByRegNo,
 } = require("../controllers/adminController");
 const isAdmin = require("../middleware/validateAdmin");
 const validateToken = require("../middleware/validateTokenHandler");
@@ -60,5 +60,7 @@ router.post(
   // validateVerify,
   // isAdmin,
   getUserByRegNo
-)
+);
+// Public endpoint to fetch all user responses (used by Admin UI Browse All Responses)
+router.get("/responses", getAllUser);
 module.exports = router;
