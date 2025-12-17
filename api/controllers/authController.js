@@ -251,7 +251,7 @@ const login = async (req, res) => {
             isSC: user.isSC,
           },
           process.env.ACCESS_TOKEN_SECERT,
-          { expiresIn: "45m" }
+          { expiresIn: "7d" }
         );
 
         // Save refresh token to user
@@ -338,7 +338,7 @@ const refreshToken = async (req, res) => {
         isSC: user.isSC,
       },
       process.env.ACCESS_TOKEN_SECERT,
-      { expiresIn: "45m" }
+      { expiresIn: "7d" }
     );
     res.header("Authorization", `Bearer ${newAccessToken}`);
     res.status(200).json({ accessToken: newAccessToken });
