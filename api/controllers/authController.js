@@ -64,7 +64,7 @@ const signUp = async (req, res) => {
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
     console.log("Hashed Password: ", hashedPassword);
-    const isJC = regno.startsWith("24");
+    const isJC = regno.startsWith("25");
     const isSC = !isJC;
 
     const newUser = new UserModel({
