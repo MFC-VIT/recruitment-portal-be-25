@@ -100,7 +100,7 @@ function emailTemplate({ candidateName, date, start, end, meetLink }) {
 
                                                     <p class="mobile-font" style="font-size: 13px; font-weight: bold; margin: 15px 0 5px 0; color: #ffffff;">Google Meet Link:</p>
                                                     <p class="mobile-font" style="font-size: 12px; margin: 0; word-break: break-all;">
-                                                        <a href="${meetLink}" style="color: #FF8C42; text-decoration: none; font-weight: bold;">${meetLink}</a>
+                                                        <a href="${meetLink}" style="color: #ff7824ff; text-decoration: none; font-weight: bold;">${meetLink}</a>
                                                     </p>
                                                 </td>
                                             </tr>
