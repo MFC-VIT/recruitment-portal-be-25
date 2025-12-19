@@ -123,22 +123,20 @@ function emailTemplate({ candidateName, date, start, end, meetLink }) {
 
                     <!-- FOOTER ROW (Solid Orange) -->
                     <tr>
-                        <td bgcolor="#FF8C42" style="background-color: #FF8C42; border: 0; margin: 0; padding: 0;">
-                            <table border="0" cellpadding="0" cellspacing="0" width="100%" style="border-collapse: collapse;">
-                                <tr>
-                                    <td align="center" style="padding: 20px 0;">
-                                        <a href="INSTAGRAM_LINK" style="text-decoration: none; margin: 0 15px; display: inline-block;">
-                                            <img src="instagram.png" alt="IG" width="28" height="28" style="display: block; border: 0;">
-                                        </a>
-                                        <a href="LINKEDIN_LINK" style="text-decoration: none; margin: 0 15px; display: inline-block;">
-                                            <img src="linkedin.png" alt="LN" width="28" height="28" style="display: block; border: 0;">
-                                        </a>
-                                        <a href="mailto:MAIL_LINK" style="text-decoration: none; margin: 0 15px; display: inline-block;">
-                                            <img src="email.png" alt="Mail" width="28" height="28" style="display: block; border: 0;">
-                                        </a>
-                                    </td>
-                                </tr>
-                            </table>
+                        <td bgcolor="#FF8C42" align="center" style="padding:12px 0;">
+
+                            <a href="https://www.instagram.com/mfc_vit" style="display:inline-block;">
+                                <img src="cid:insta_icon" width="24" style="margin:0 25px; border:0; outline:none;" />
+                            </a>
+
+                            <a href="https://www.linkedin.com/company/mfcvit" style="display:inline-block;">
+                                <img src="cid:linkedin_icon" width="24" style="margin:0 25px; border:0; outline:none;" />
+                            </a>
+
+                            <a href="mailto:mozillafirefox@vit.ac.in" style="display:inline-block;">
+                                <img src="cid:mail_icon" width="24" style="margin:0 25px; border:0; outline:none;" />
+                            </a>
+
                         </td>
                     </tr>
 
@@ -286,6 +284,21 @@ const scheduleMeeting = async (req, res) => {
           filename: "background.png",
           path: path.join(__dirname, "background.png"),
           cid: "background_img",
+        },
+        {
+          filename: "instagram.png",
+          path: path.join(__dirname, "instagram.png"),
+          cid: "insta_icon",
+        },
+        {
+          filename: "linkedin.png",
+          path: path.join(__dirname, "linkedin.png"),
+          cid: "linkedin_icon",
+        },
+        {
+          filename: "email.png",
+          path: path.join(__dirname, "email.png"),
+          cid: "mail_icon",
         },
       ],
     });
