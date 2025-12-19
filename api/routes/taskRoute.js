@@ -3,6 +3,9 @@ const {
   saveTaskDesign,
   saveTaskManagement,
   saveTaskTech,
+  getTaskDesign,
+  getTaskManagement,
+  getTaskTech,
 } = require("../controllers/taskController");
 const { rateLimiter_10min_100req } = require("../middleware/ratelimiter");
 const {
@@ -23,6 +26,13 @@ router.post(
   saveTaskManagement
 );
 
+router.get(
+  "/management/:id",
+  rateLimiter_10min_100req,
+  validateManagement,
+  getTaskManagement
+);
+
 router.patch(
   "/management/:id",
   rateLimiter_10min_100req,
@@ -37,6 +47,13 @@ router.post(
   saveTaskTech
 );
 
+router.get(
+  "/tech/:id",
+  rateLimiter_10min_100req,
+  validateTech,
+  getTaskTech
+);
+
 router.patch(
   "/tech/:id",
   rateLimiter_10min_100req,
@@ -49,6 +66,13 @@ router.post(
   rateLimiter_10min_100req,
   validateDesign,
   saveTaskDesign
+);
+
+router.get(
+  "/design/:id",
+  rateLimiter_10min_100req,
+  validateDesign,
+  getTaskDesign
 );
 
 router.patch(

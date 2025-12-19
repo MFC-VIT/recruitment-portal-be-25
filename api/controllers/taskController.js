@@ -11,7 +11,7 @@ const saveTaskManagement = async (req, res) => {
     const task = await ManagmentTaskModel.findOneAndUpdate(
       { user_id: id },
       { ...req.body, user_id: id, isDone: isSubmission },
-      { upsert: true, new: true, runValidators: true }
+      { upsert: true, new: true, runValidators: isSubmission }
     );
 
     if (isSubmission) {
@@ -40,7 +40,7 @@ const saveTaskTech = async (req, res) => {
     const task = await TechTaskModel.findOneAndUpdate(
       { user_id: id },
       { ...req.body, user_id: id, isDone: isSubmission },
-      { upsert: true, new: true, runValidators: true }
+      { upsert: true, new: true, runValidators: isSubmission }
     );
 
     if (isSubmission) {
@@ -69,7 +69,7 @@ const saveTaskDesign = async (req, res) => {
     const task = await DesignTaskModel.findOneAndUpdate(
       { user_id: id },
       { ...req.body, user_id: id, isDone: isSubmission },
-      { upsert: true, new: true, runValidators: true }
+      { upsert: true, new: true, runValidators: isSubmission }
     );
 
     if (isSubmission) {
@@ -91,9 +91,63 @@ const saveTaskDesign = async (req, res) => {
   }
 };
 
+const getTaskManagement = async (req, res) => {
+  const { id } = req.params;
+  try {
+    const task = await ManagmentTaskModel.findOne({ user_id: id });
+    const response = new Response(
+      200,
+      task,
+      "Management Task Fetched Successfully",
+      true
+    );
+    res.status(response.statusCode).json(response);
+  } catch (error) {
+    const response = new Response(500, null, error.message, false);
+    res.status(response.statusCode).json(response);
+  }
+};
+
+const getTaskTech = async (req, res) => {
+  const { id } = req.params;
+  try {
+    const task = await TechTaskModel.findOne({ user_id: id });
+    const response = new Response(
+      200,
+      task,
+      "Tech Task Fetched Successfully",
+      true
+    );
+    res.status(response.statusCode).json(response);
+  } catch (error) {
+    const response = new Response(500, null, error.message, false);
+    res.status(response.statusCode).json(response);
+  }
+};
+
+const getTaskDesign = async (req, res) => {
+  const { id } = req.params;
+  try {
+    const task = await DesignTaskModel.findOne({ user_id: id });
+    const response = new Response(
+      200,
+      task,
+      "Design Task Fetched Successfully",
+      true
+    );
+    res.status(response.statusCode).json(response);
+  } catch (error) {
+    const response = new Response(500, null, error.message, false);
+    res.status(response.statusCode).json(response);
+  }
+};
+
 module.exports = {
   saveTaskManagement,
   saveTaskTech,
   saveTaskDesign,
+  getTaskManagement,
+  getTaskTech,
+  getTaskDesign,
 };
 
