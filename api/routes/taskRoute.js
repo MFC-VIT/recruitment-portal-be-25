@@ -1,15 +1,9 @@
 const express = require("express");
 const {
-  uploadFileTech,
-  uploadFile,
-  downloadFileTech,
-  uploadDesignTech,
-  uploadTaskManagment,
-  uploadTaskTech,
-  uploadFileDesign,
-  downloadFileDesign,
+  saveTaskDesign,
+  saveTaskManagement,
+  saveTaskTech,
 } = require("../controllers/taskController");
-const { fileCountLimit, fileSizeLimit } = require("../middleware/validateFile");
 const { rateLimiter_10min_100req } = require("../middleware/ratelimiter");
 const {
   validateTech,
@@ -26,19 +20,43 @@ router.post(
   "/management/:id",
   rateLimiter_10min_100req,
   validateManagement,
-  uploadTaskManagment
+  saveTaskManagement
 );
+
+router.patch(
+  "/management/:id",
+  rateLimiter_10min_100req,
+  validateManagement,
+  saveTaskManagement
+);
+
 router.post(
   "/tech/:id",
   rateLimiter_10min_100req,
   validateTech,
-  uploadTaskTech
+  saveTaskTech
 );
+
+router.patch(
+  "/tech/:id",
+  rateLimiter_10min_100req,
+  validateTech,
+  saveTaskTech
+);
+
 router.post(
   "/design/:id",
   rateLimiter_10min_100req,
   validateDesign,
-  uploadDesignTech
+  saveTaskDesign
+);
+
+router.patch(
+  "/design/:id",
+  rateLimiter_10min_100req,
+  validateDesign,
+  saveTaskDesign
 );
 
 module.exports = router;
+
