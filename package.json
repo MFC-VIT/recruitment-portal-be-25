@@ -4,12 +4,13 @@
   "description": "MFC Recruitment Portal Backend",
   "main": "index.js",
   "scripts": {
-    "start": "nodemon index.js"
+    "start": "nodemon index.js",
+    "generate":"node api/utils/generateSlots.js"
   },
   "author": "Abhinav Garg",
   "license": "ISC",
   "dependencies": {
-    "bcrypt": "^5.1.1",
+    "bcrypt": "^6.0.0",
     "body-parser": "^1.20.2",
     "cors": "^2.8.5",
     "cros": "^1.0.1",

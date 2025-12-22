@@ -1,28 +1,23 @@
 version: "3.9"
 
 services:
-  version: "3.9"
-
-  services:
-    api:
-      build: .
-      image: mfc-recruitment-portal-be:latest
-      container_name: mfc-recruitment-portal-be
-      environment:
-        # Compose reads from .env automatically; just pass-through
-        - ACCESS_TOKEN_SECERT=${ACCESS_TOKEN_SECERT}
-        - AUTH_EMAIL=${AUTH_EMAIL}
-        - AUTH_PASS=${AUTH_PASS}
-        - CLIENT_URL=${CLIENT_URL}
-        - PORT=${PORT:-5000}
-        - CONNECT_STRING=${CONNECT_STRING}
-      ports:
-        - "5000:5000"
-      healthcheck:
-        test: ["CMD", "curl", "-fsS", "http://localhost:5000/ping"]
-        interval: 30s
-        timeout: 5s
-        retries: 3
-        start_period: 10s
-      restart: unless-stopped
+  api:
+    build: .
+    image: mfc-recruitment-portal-be:latest
+    container_name: mfc-recruitment-portal-be
+    environment:
+      - ACCESS_TOKEN_SECERT=${ACCESS_TOKEN_SECERT}
+      - AUTH_EMAIL=${AUTH_EMAIL}
+      - AUTH_PASS=${AUTH_PASS}
+      - CLIENT_URL=${CLIENT_URL}
+      - PORT=${PORT:-5000}
+      - CONNECT_STRING=${CONNECT_STRING}
+    ports:
+      - "5000:5000"
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://localhost:5000/ping"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
       start_period: 10s
+    restart: unless-stopped

@@ -1,68 +1,106 @@
 const UserModel = require("../models/userModel");
+const Response = require("../utils/responseModel");
+
 const applicationStatus = async (req, res) => {
   const { id } = req.params;
   try {
-    const user = await UserModel.findOne({
-      user_id: id,
-    });
-    if (user.roundOne === false) {
-      res.status(200).json({
-        message:
-          "Your application is under evaluation. Stay tunned for results.",
-      });
-    } else if (user.roundOne === true && user.roundTwo === true) {
-      res.status(200).json({
-        message:
-          "congratulations! You have been selected for second round. All the best.",
-      });
-    } else if (
-      user.roundOne === true &&
-      user.roundTwo === true &&
-      user.roundThree === true
-    ) {
-      res.status(200).json({
-        message:
-          "congratulations! You have been selected for third round. All the best.",
-      });
-    } else if (
-      user.roundOne === true &&
-      user.roundTwo === true &&
-      user.roundThree === true &&
-      user.isCore === true
-    ) {
-      res.status(200).json({
-        message: "congratulations! You have been selected.",
+    const user = await UserModel.findById(id);
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    // Overall status derived from domain-specific progress flags
+    const domains = Array.isArray(user.domain) ? user.domain : [];
+    const progress = {
+      tech: user.tech || 0,
+      design: user.design || 0,
+      management: user.management || 0,
+    };
+    const submitted = {
+      tech: !!user.isTechDone,
+      design: !!user.isDesignDone,
+      management: !!user.isManagementDone,
+    };
+
+    // Final selection
+    if (user.isCore === true) {
+      return res.status(200).json({
+        message: "Congratulations! You have been selected.",
       });
     }
+
+    // Third round reached in any applied domain
+    if (
+      (domains.includes("tech") && submitted.tech && progress.tech === 2) ||
+      (domains.includes("design") &&
+        submitted.design &&
+        progress.design === 2) ||
+      (domains.includes("management") &&
+        submitted.management &&
+        progress.management === 2)
+    ) {
+      return res.status(200).json({
+        message:
+          "Congratulations! You have been selected for the third round. All the best.",
+      });
+    }
+
+    // Second round reached in any applied domain
+    if (
+      (domains.includes("tech") && submitted.tech && progress.tech === 1) ||
+      (domains.includes("design") &&
+        submitted.design &&
+        progress.design === 1) ||
+      (domains.includes("management") &&
+        submitted.management &&
+        progress.management === 1)
+    ) {
+      return res.status(200).json({
+        message:
+          "Congratulations! You have been selected for the second round. All the best.",
+        redirectTo: "/meeting",
+      });
+    }
+
+    // Not submitted in any applied domain
+    if (
+      (domains.includes("tech") && !submitted.tech) ||
+      (domains.includes("design") && !submitted.design) ||
+      (domains.includes("management") && !submitted.management)
+    ) {
+      return res.status(200).json({
+        message:
+          "Your application is not submitted for at least one selected domain. Kindly complete and submit it for evaluation.",
+      });
+    }
+
+    // Under evaluation default
+    return res.status(200).json({
+      message: "Your application is under evaluation. Stay tuned for results.",
+    });
   } catch (error) {
-    const response = new Response(
-      500,
-      null,
-      error.message,
-      false
-    );
-    res.status(response.statusCode).json(response)
+    const response = new Response(500, null, error.message, false);
+    res.status(response.statusCode).json(response);
   }
 };
 
 const applicationTechStatus = async (req, res) => {
   const { id } = req.params;
   try {
-    const user = await UserModel.findOne({
-      _id: id,
-    });
-    console.log("user23", id);
-    console.log("ouser23", user);
+    const user = await UserModel.findById(id);
 
     if (!user) {
       return res.status(404).json({
         message: "User not found",
+        passed: 0,
       });
     }
 
     if (!user.domain.includes("tech")) {
       return res.status(200).json({
         message: "You have not applied for the Tech Domain.",
+        passed: 0,
       });
     }
 
@@ -70,43 +108,44 @@ const applicationTechStatus = async (req, res) => {
       return res.status(200).json({
         message:
           "Your application for the Tech Domain is not submitted. Kindly complete and submit it for evaluation.",
+        passed: 0,
       });
     }
 
-    if (user.domain.includes("tech") && user.isTechDone && user.tech==0) {
+    if (user.domain.includes("tech") && user.isTechDone && user.tech === -1) {
+      return res.status(200).json({
+        message:
+          "You have not been selected for the Tech Domain. Better luck next time.",
+      });
+    }
+    if (user.domain.includes("tech") && user.isTechDone && user.tech === 0) {
       return res.status(200).json({
         message:
           "Your application for the Tech Domain is under evaluation. Stay tuned for results.",
+        passed: 0,
       });
     }
 
-    if (
-      user.domain.includes("tech") &&
-      user.isTechDone &&
-      user.tech==1
-    ) {
+    if (user.domain.includes("tech") && user.isTechDone && user.tech === 1) {
       return res.status(200).json({
         message:
           "Congratulations! You have been selected for the second round of Tech. All the best.",
-          redirectTo: "/meeting"
+        redirectTo: "/meeting",
+        passed: 1,
       });
     }
 
-    if (
-      user.domain.includes("tech") &&
-      user.isTechDone &&
-      user.tech==2
-    ) {
+    if (user.domain.includes("tech") && user.isTechDone && user.tech === 2) {
       return res.status(200).json({
         message:
-          "Congratulations! You have been selected for the third round. All the best.",
+          "Congratulations! You have made it to Mozilla Firefox Club, VIT.",
       });
     }
 
     if (
       user.domain.includes("tech") &&
       user.isTechDone &&
-      user.tech==3 &&
+      user.tech === 3 &&
       user.isCore
     ) {
       return res.status(200).json({
@@ -119,32 +158,27 @@ const applicationTechStatus = async (req, res) => {
     });
   } catch (error) {
     console.error(error);
-    const response = new Response(
-      500,
-      null,
-      error.message,
-      false
-    );
-    res.status(response.statusCode).json(response)
+    const response = new Response(500, null, error.message, false);
+    res.status(response.statusCode).json(response);
   }
 };
 
 const applicationDesignStatus = async (req, res) => {
   const { id } = req.params;
   try {
-    const user = await UserModel.findOne({
-      _id: id,
-    });
+    const user = await UserModel.findById(id);
 
     if (!user) {
       return res.status(404).json({
         message: "User not found",
+        passed: 0,
       });
     }
 
     if (!user.domain.includes("design")) {
       return res.status(200).json({
         message: "You have not applied for the design Domain.",
+        passed: 0,
       });
     }
 
@@ -152,13 +186,29 @@ const applicationDesignStatus = async (req, res) => {
       return res.status(200).json({
         message:
           "Your application for the Design Domain is not submitted. Kindly complete and submit it for evaluation.",
+          passed: 0,
       });
     }
 
-    if (user.domain.includes("design") && user.isDesignDone && user.design==0) {
+    if (
+      user.domain.includes("design") &&
+      user.isDesignDone &&
+      user.design === -1
+    ) {
+      return res.status(200).json({
+        message:
+          "You have not been selected for the Design Domain. Better luck next time.",
+      });
+    }
+    if (
+      user.domain.includes("design") &&
+      user.isDesignDone &&
+      user.design === 0
+    ) {
       return res.status(200).json({
         message:
           "Your application for the Design Domain is under evaluation. Stay tuned for results.",
+          passed: 0,
           
       });
     }
@@ -166,30 +216,31 @@ const applicationDesignStatus = async (req, res) => {
     if (
       user.domain.includes("design") &&
       user.isDesignDone &&
-      user.design==1
+      user.design === 1
     ) {
       return res.status(200).json({
         message:
           "Congratulations! You have been selected for the second round of Design. All the best.",
-          redirectTo: "/meeting"
+          redirectTo: "/meeting",
+          passed: 1,
       });
     }
 
     if (
       user.domain.includes("design") &&
       user.isDesignDone &&
-      user.design==2
+      user.design === 2
     ) {
       return res.status(200).json({
         message:
-          "Congratulations! You have been selected for the third round. All the best.",
+          "Congratulations! You have made it to Mozilla Firefox Club, VIT.",
       });
     }
 
     if (
       user.domain.includes("design") &&
       user.isDesignDone &&
-      user.design==3 &&
+      user.design === 3 &&
       user.isCore
     ) {
       return res.status(200).json({
@@ -202,26 +253,27 @@ const applicationDesignStatus = async (req, res) => {
     });
   } catch (error) {
     console.error(error);
-    return res.status(500).json({ message: "Internal server error" });
+    const response = new Response(500, null, error.message, false);
+    res.status(response.statusCode).json(response);
   }
 };
 
 const applicationManagementStatus = async (req, res) => {
   const { id } = req.params;
   try {
-    const user = await UserModel.findOne({
-      _id: id,
-    });
+    const user = await UserModel.findById(id);
 
     if (!user) {
       return res.status(404).json({
         message: "User not found",
+        passed: 0,
       });
     }
 
     if (!user.domain.includes("management")) {
       return res.status(200).json({
         message: "You have not applied for the management Domain.",
+        passed: 0,
       });
     }
 
@@ -229,47 +281,61 @@ const applicationManagementStatus = async (req, res) => {
       return res.status(200).json({
         message:
           "Your application for the management Domain is not submitted. Kindly complete and submit it for evaluation.",
+          passed: 0,
       });
     }
 
     if (
       user.domain.includes("management") &&
       user.isManagementDone &&
-      user.management==0
+      user.management === 0
     ) {
       return res.status(200).json({
         message:
           "Your application for the management Domain is under evaluation. Stay tuned for results.",
+          passed: 0,
       });
     }
 
     if (
       user.domain.includes("management") &&
       user.isManagementDone &&
-      user.management==1
+      user.management === -1
+    ) {
+      return res.status(200).json({
+        message:
+          "You have not been selected for the Management Domain. Better luck next time.",
+        redirectTo: "/meeting",
+      });
+    }
+    if (
+      user.domain.includes("management") &&
+      user.isManagementDone &&
+      user.management === 1
     ) {
       return res.status(200).json({
         message:
           "Congratulations! You have been selected for the second round of Management. All the best.",
-        redirectTo: "/meeting"
+        redirectTo: "/meeting",
+        passed: 1,
       });
     }
 
     if (
       user.domain.includes("management") &&
       user.isManagementDone &&
-      user.management==2
+      user.management === 2
     ) {
       return res.status(200).json({
         message:
-          "Congratulations! You have been selected for the third round. All the best.",
+          "Congratulations! You have made it to Mozilla Firefox Club, VIT.",
       });
     }
 
     if (
       user.domain.includes("management") &&
       user.isManagementDone &&
-      user.management==3 &&
+      user.management === 3 &&
       user.isCore
     ) {
       return res.status(200).json({
@@ -282,13 +348,8 @@ const applicationManagementStatus = async (req, res) => {
     });
   } catch (error) {
     console.error(error);
-    const response = new Response(
-      500,
-      null,
-      error.message,
-      false
-    );
-    res.status(response.statusCode).json(response)
+    const response = new Response(500, null, error.message, false);
+    res.status(response.statusCode).json(response);
   }
 };
 

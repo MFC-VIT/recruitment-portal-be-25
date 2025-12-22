@@ -6,7 +6,7 @@ const {
   getAllUserTech,
   getAllUserManagement,
   getAllUserDesign,
-  getUserByRegNo
+  getUserByRegNo,
 } = require("../controllers/adminController");
 const isAdmin = require("../middleware/validateAdmin");
 const validateToken = require("../middleware/validateTokenHandler");
@@ -22,21 +22,21 @@ router.get(
   "/userstech/:id",
   validateToken,
   validateVerify,
-  isAdmin,
+  // isAdmin,
   getAllUserTech
 );
 router.get(
   "/usersmanagement/:id",
   validateToken,
   validateVerify,
-  isAdmin,
+  // isAdmin,
   getAllUserManagement
 );
 router.get(
   "/usersdesign/:id",
   validateToken,
   validateVerify,
-  isAdmin,
+  // isAdmin,
   getAllUserDesign
 );
 router.put(
@@ -60,5 +60,7 @@ router.post(
   // validateVerify,
   // isAdmin,
   getUserByRegNo
-)
+);
+// Public endpoint to fetch all user responses (used by Admin UI Browse All Responses)
+router.get("/responses", getAllUser);
 module.exports = router;
