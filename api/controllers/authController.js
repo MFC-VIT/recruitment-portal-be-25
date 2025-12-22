@@ -167,33 +167,30 @@ const verifyOTP = async (req, res) => {
 
 const resendOTP = async (req, res) => {
   try {
-    const { id } = req.params;
-    const { email } = req.body;
-    if (!id || !email) {
-      throw Error("Empty user missing");
-    } else {
-      const user = await UserModel.findOne({ _id: id, email: email });
-      if (!user) {
-        return res.status(404).json({ message: "User not found" });
-      }
-
-      const verificationRecord = await VerificationModel.findOne({
-        user_id: id,
-        email: email,
-      });
-      if (!user.verified) {
-        await VerificationModel.deleteMany({ user_id: id });
-        await sendVerificationMail(user);
-        res.status(200).json({ message: "sent otp again" });
-      } else {
-        res.status(200).json({ message: "Already verified" });
-      }
+    const { id } = req.params; // Get user ID from URL params
+    if (!id) {
+      return res.status(400).json({ message: "User ID is required" });
     }
+    const user = await UserModel.findById(id);
+    
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+    if (user.verified) {
+      return res.status(200).json({ message: "Already verified" });
+    }
+    await VerificationModel.deleteMany({ user_id: id });
+    await sendVerificationMail(user);
+    
+    res.status(200).json({ 
+      message: "OTP sent successfully",
+      userId: user._id,
+      email: user.email
+    });
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
 };
-
 const login = async (req, res) => {
   try {
     const { email, password } = req.body;
