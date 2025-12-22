@@ -100,6 +100,7 @@ const signUp = async (req, res) => {
         admin: savedUser.admin,
         isJC: savedUser.isJC,
         isSC: savedUser.isSC,
+        isProfileDone:savedUser.isProfileDone
       },
       process.env.ACCESS_TOKEN_SECERT,
       { expiresIn: "15d" }
