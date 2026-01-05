@@ -12,6 +12,7 @@ const MAX_BOOKINGS = 3;
 // Interviewer List , Update Before Deployment
 const INTERVIEWERS = [
   "adith.manikonda2024@vitstudent.ac.in",
+  "yuvraj.bansal2024@vitstudent.ac.in",
   // "adithyanachiyappan.2024@vitstudent.ac.in",
 ];
 
