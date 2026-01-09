@@ -16,12 +16,12 @@ const signUp = async (req, res) => {
   const { username, email, regno, password, confirmpassword } = req.body;
   console.log(req.body);
   try {
-    const emailList = allowedEmailsData.allowedEmails;
-    if (!emailList.includes(email)) {
-      return res
-        .status(200)
-        .json({ error: "User have not enrolled in MFC-VIT" });
-    }
+    // const emailList = allowedEmailsData.allowedEmails;
+    // if (!emailList.includes(email)) {
+    //   return res
+    //     .status(200)
+    //     .json({ error: "User have not enrolled in MFC-VIT" });
+    // }
     if (!username || !email || !regno || !password || !confirmpassword) {
       return res.status(200).json({ error: "All fields are required" });
     }
@@ -100,7 +100,7 @@ const signUp = async (req, res) => {
         admin: savedUser.admin,
         isJC: savedUser.isJC,
         isSC: savedUser.isSC,
-        isProfileDone:savedUser.isProfileDone
+        isProfileDone: savedUser.isProfileDone,
       },
       process.env.ACCESS_TOKEN_SECERT,
       { expiresIn: "15d" }
@@ -174,7 +174,7 @@ const resendOTP = async (req, res) => {
       return res.status(400).json({ message: "User ID is required" });
     }
     const user = await UserModel.findById(id);
-    
+
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
@@ -183,11 +183,11 @@ const resendOTP = async (req, res) => {
     }
     await VerificationModel.deleteMany({ user_id: id });
     await sendVerificationMail(user);
-    
-    res.status(200).json({ 
+
+    res.status(200).json({
       message: "OTP sent successfully",
       userId: user._id,
-      email: user.email
+      email: user.email,
     });
   } catch (error) {
     res.status(500).json({ message: error.message });
