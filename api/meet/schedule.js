@@ -9,13 +9,30 @@ const path = require("path");
 // Number of Bookings Allowed Per Slots
 const MAX_BOOKINGS = 3;
 
-// Interviewer List , Update Before Deployment
+// Interviewer List , Update Before Deployment, UPDATED hehe
 const INTERVIEWERS = [
   "adith.manikonda2024@vitstudent.ac.in",
   "yuvraj.bansal2024@vitstudent.ac.in",
-  // "adithyanachiyappan.2024@vitstudent.ac.in",
+  "adithyanachiyappan.2024@vitstudent.ac.in",
+  "pranjal.sahay2024@vitstudent.ac.in",
+  "dakshata.abhyankar2024@vitstudent.ac.in",
+  "arshia.ghosh2024@vitstudent.ac.in",
+  "sarthak.jain2024@vitstudent.ac.in",
+  "anurag.thakur2024@vitstudent.ac.in",
+  "aadya.agarwal2024b@vitstudent.ac.in",
+  "ritwin.as2024@vitstudent.ac.in",
+  "traya.jawahar2024@vitstudent.ac.in",
+  "neha.damani2024@vitstudent.ac.in",
+  "shubham.mishra2024@vitstudent.ac.in",
+  "pooja.goel2023@vitstudent.ac.in",
+  "riyan.johnson2024@vitstudent.ac.in",
+  "anuraag.chakraborty2024@vitstudent.ac.in",
+  "aayush.keshwani2024@vitstudent.ac.in",
+  "shreya.yadav2024@vitstudent.ac.in",
+  "jaanya.bagdi2024@vitstudent.ac.in",
+  "manya.praveensingh2024@vitstudent.ac.in",
+  "rishita.khetan2024@vitstudent.ac.in",
 ];
-
 const transporter = nodemailer.createTransport({
   service: "gmail",
   auth: {
@@ -26,131 +43,198 @@ const transporter = nodemailer.createTransport({
 
 function emailTemplate({ candidateName, date, start, end, meetLink }) {
   return `<!DOCTYPE html>
-<html lang="en" xmlns:v="urn:schemas-microsoft-com:vml" xmlns:o="urn:schemas-microsoft-com:office:office">
+<html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <!--[if mso]>
-    <xml>
-        <o:OfficeDocumentSettings>
-            <o:AllowPNG/>
-            <o:PixelsPerInch>96</o:PixelsPerInch>
-        </o:OfficeDocumentSettings>
-    </xml>
-    <![endif]-->
-    <style>
-        /* Force Gmail to respect widths */
-        .gmail-fix { min-width: 600px !important; }
-        @media only screen and (max-width: 599px) {
-            .mobile-container { width: 100% !important; min-width: 320px !important; }
-            .mobile-font { font-size: 11px !important; line-height: 1.2 !important; }
-            .mobile-title { font-size: 13px !important; }
-            .mobile-padding { padding: 12px 14px !important; }
-            .mobile-spacer-top { height: 180px !important; }
-            .mobile-col-left { width: 45% !important; }
-            .mobile-col-right { width: 55% !important; }
-        }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<meta name="color-scheme" content="dark">
+<meta name="supported-color-schemes" content="dark">
+
+<style>
+  body {
+    margin: 0;
+    padding: 0;
+    background-color: #000000 !important;
+    font-family: Arial, sans-serif;
+  }
+
+  table {
+    border-collapse: collapse;
+  }
+
+  .outer {
+    width: 100%;
+    max-width: 600px;
+  }
+
+  /* MOBILE FIRST */
+  .two-col {
+    width: 320px;
+  }
+
+  .text {
+    color: #ffffff !important;
+    font-size: 11.5px;
+    line-height: 1.4;
+  }
+
+  .muted {
+    color: #d8d8d8 !important;
+  }
+
+  .link {
+    color: #ff7824 !important;
+    text-decoration: none;
+    word-break: break-word;
+  }
+
+  /* DESKTOP ONLY */
+  @media only screen and (min-width: 601px) {
+    .two-col {
+      width: 560px !important;
+    }
+
+    .left-img {
+      width: 280px !important;
+    }
+
+    .left-img img {
+      width: 280px !important;
+      height: auto !important;
+    }
+
+    .right-text {
+      width: 280px !important;
+      font-size: 13.5px !important;
+      line-height: 1.55 !important;
+    }
+  }
+</style>
 </head>
-<body style="margin:0;padding:0;background-color:#000000;font-family:Arial, sans-serif;">
-    <table border="0" cellpadding="0" cellspacing="0" width="100%" bgcolor="#000000" style="border-collapse: collapse; table-layout: fixed;">
-        <tr>
-            <td align="center" style="padding: 0;">
-                
-                <!-- MAIN 600px CONTAINER -->
-                <table border="0" cellpadding="0" cellspacing="0" width="600" class="mobile-container gmail-fix" style="width:600px; border-collapse: collapse; table-layout: fixed; background-color: #000000;">
-                    
-                    <!-- HERO ROW (All Background Image) -->
-                    <tr>
-                        <td background="cid:background_img" bgcolor="#000000" align="center" valign="top" style="background-image: url('cid:background_img'); background-repeat: no-repeat; background-position: top center; background-size: cover; border: 0;">
-                            
-                            <!--[if gte mso 9]>
-                            <v:rect xmlns:v="urn:schemas-microsoft-com:vml" fill="true" stroke="false" style="width:600px;height:820px;">
-                            <v:fill type="frame" src="cid:background_img" color="#000000" />
-                            <v:textbox inset="0,0,0,0">
-                            <![endif]-->
-                            
-                            <!-- Internal Layout Table (Slicing the content) -->
-                            <table border="0" cellpadding="0" cellspacing="0" width="100%" style="border-collapse: collapse; table-layout: fixed;">
-                                
-                                <!-- TOP SECTION (Empty) -->
-                                <tr>
-                                    <td height="280" class="mobile-spacer-top" colspan="2" style="font-size:1px; line-height:1px;">&nbsp;</td>
-                                </tr>
 
-                                <!-- MIDDLE SECTION (The Side-by-Side Slice) -->
-                                <tr>
-                                    <!-- Left Column (The Building) -->
-                                    <td width="280" class="mobile-col-left" style="width:280px; font-size:1px; line-height:1px;">&nbsp;</td>
+<body>
 
-                                    <!-- Right Column (The Overlay Area) -->
-                                    <td width="320" class="mobile-col-right" align="left" valign="top" style="width:320px; padding-right: 25px;">
-                                        
-                                        <!-- The Candidate Info Box -->
-                                        <table border="0" cellpadding="0" cellspacing="0" width="100%" class="mobile-box" style="background-color: #000000; background-color: rgba(0,0,0,0.85); border-radius: 8px; border-collapse: separate;">
-                                            <tr>
-                                                <td class="mobile-padding" style="padding: 22px 25px; font-family: Arial, sans-serif;">
-                                                    <p class="mobile-title" style="font-size: 18px; font-weight: bold; margin: 0 0 8px 0; color: #ffffff;">Dear candidate,</p>
-                                                    <p class="mobile-font" style="font-size: 14px; margin: 0 0 15px 0; line-height: 1.5; color: #d8d8d8;">Please find the details for your scheduled meeting below:</p>
-                                                    
-                                                    <table border="0" cellpadding="0" cellspacing="0" width="100%">
-                                                        <tr><td class="mobile-font" style="padding: 2px 0; font-size: 13px; color: #ffffff;"><b>Candidate Name:</b> ${candidateName}</td></tr>
-                                                        <tr><td class="mobile-font" style="padding: 2px 0; font-size: 13px; color: #ffffff;"><b>Date:</b> ${date}</td></tr>
-                                                        <tr><td class="mobile-font" style="padding: 2px 0; font-size: 13px; color: #ffffff;"><b>Time:</b> ${start} - ${end}</td></tr>
-                                                    </table>
+<!-- WRAPPER 1 -->
+<table width="100%" cellpadding="0" cellspacing="0" bgcolor="#000000">
+<tr>
+<td align="center" bgcolor="#000000">
 
-                                                    <p class="mobile-font" style="font-size: 13px; font-weight: bold; margin: 15px 0 5px 0; color: #ffffff;">Google Meet Link:</p>
-                                                    <p class="mobile-font" style="font-size: 12px; margin: 0; word-break: break-all;">
-                                                        <a href="${meetLink}" style="color: #ff7824ff; text-decoration: none; font-weight: bold;">${meetLink}</a>
-                                                    </p>
-                                                </td>
-                                            </tr>
-                                        </table>
-                                    </td>
-                                </tr>
+<!-- WRAPPER 2 -->
+<table width="100%" cellpadding="0" cellspacing="0" bgcolor="#000000">
+<tr>
+<td align="center" bgcolor="#000000">
 
-                                <!-- BOTTOM SECTION (The spacer to hold the image height) -->
-                                <tr>
-                                    <td height="280" colspan="2" style="font-size:1px; line-height:1px;">&nbsp;</td>
-                                </tr>
-                            </table>
+<!-- WRAPPER 3 / OUTER -->
+<table class="outer" width="100%" cellpadding="0" cellspacing="0" align="center"
+       bgcolor="#000000" style="background-color:#000000;">
 
-                            <!--[if gte mso 9]>
-                            </v:textbox>
-                            </v:rect>
-                            <![endif]-->
-                        </td>
-                    </tr>
+<!-- HEADER IMAGE -->
+<tr>
+<td align="center" bgcolor="#000000" style="background-color:#000000;">
+  <img
+    src="cid:header_img"
+    width="600"
+    style="width:100%; max-width:600px; display:block;"
+    alt="MFC Interview Confirmation"
+  />
+</td>
+</tr>
 
-                    <!-- FOOTER ROW (Solid Orange) -->
-                    <tr>
-                        <td bgcolor="#FF8C42" align="center" style="padding:12px 0;">
+<!-- CONTENT -->
+<tr>
+<td align="center" bgcolor="#000000" style="background-color:#000000;">
 
-                            <a href="https://www.instagram.com/mfc_vit" style="display:inline-block;">
-                                <img src="cid:insta_icon" width="24" style="margin:0 25px; border:0; outline:none;" />
-                            </a>
+<table class="two-col" width="320" cellpadding="0" cellspacing="0" align="center"
+       bgcolor="#000000" style="background-color:#000000;">
+<tr>
 
-                            <a href="https://www.linkedin.com/company/mfcvit" style="display:inline-block;">
-                                <img src="cid:linkedin_icon" width="24" style="margin:0 25px; border:0; outline:none;" />
-                            </a>
+<!-- LEFT IMAGE -->
+<td width="150" valign="bottom" class="left-img"
+    bgcolor="#000000" style="background-color:#000000;">
+  <img
+    src="cid:building_img"
+    width="150"
+    style="display:block;"
+    alt="MFC Building"
+  />
+</td>
 
-                            <a href="mailto:mozillafirefox@vit.ac.in" style="display:inline-block;">
-                                <img src="cid:mail_icon" width="24" style="margin:0 25px; border:0; outline:none;" />
-                            </a>
+<!-- RIGHT TEXT -->
+<td
+  width="170"
+  valign="top"
+  class="text right-text"
+  bgcolor="#000000"
+  style="padding-left:14px; background-color:#000000;"
+>
 
-                        </td>
-                    </tr>
+  <b>Dear candidate,</b><br><br>
 
-                </table>
-                <!-- END MAIN CONTAINER -->
+  <span class="muted">
+    Please find the details for your scheduled meeting below:
+  </span><br><br>
 
-            </td>
-        </tr>
-    </table>
+  <b>Candidate:</b> ${candidateName}<br>
+  <b>Date:</b> ${date}<br>
+  <b>Time:</b> ${start} – ${end}<br><br>
+
+  <b>Google Meet:</b><br>
+  <a class="link" href="${meetLink}">
+    ${meetLink}
+  </a>
+
+</td>
+</tr>
+</table>
+
+</td>
+</tr>
+
+<!-- FOOTER (FORCED ORANGE, CLICKABLE, GMAIL-iOS SAFE) -->
+<tr>
+<td align="center">
+
+<table width="100%" cellpadding="0" cellspacing="0"
+       bgcolor="#FF8C42" style="background-color:#FF8C42;">
+<tr>
+<td align="center"
+    bgcolor="#FF8C42"
+    style="padding:14px; background-color:#FF8C42;">
+
+  <a href="https://www.instagram.com/mfc_vit" style="display:inline-block;">
+    <img src="cid:insta_icon" width="22"
+         style="display:block; margin:0 12px;" />
+  </a>
+
+  <a href="https://www.linkedin.com/company/mfcvit" style="display:inline-block;">
+    <img src="cid:linkedin_icon" width="22"
+         style="display:block; margin:0 12px;" />
+  </a>
+
+  <a href="mailto:mozillafirefox@vit.ac.in" style="display:inline-block;">
+    <img src="cid:mail_icon" width="22"
+         style="display:block; margin:0 12px;" />
+  </a>
+
+</td>
+</tr>
+</table>
+
+</td>
+</tr>
+
+</table>
+</td>
+</tr>
+</table>
+</td>
+</tr>
+</table>
+
 </body>
 </html>`;
 }
-
 const scheduleMeeting = async (req, res) => {
   try {
     // Request for these three from the Frontend - Switched Slot for scheduleTime
@@ -282,9 +366,14 @@ const scheduleMeeting = async (req, res) => {
       html,
       attachments: [
         {
-          filename: "background.png",
-          path: path.join(__dirname, "background.png"),
-          cid: "background_img",
+          filename: "header.webp",
+          path: path.join(__dirname, "header.webp"),
+          cid: "header_img",
+        },
+        {
+          filename: "building.webp",
+          path: path.join(__dirname, "building.webp"),
+          cid: "building_img",
         },
         {
           filename: "instagram.png",
