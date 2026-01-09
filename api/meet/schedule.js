@@ -9,28 +9,28 @@ const path = require("path");
 // Number of Bookings Allowed Per Slots
 const MAX_BOOKINGS = 3;
 
-// Interviewer List , Update Before Deployment
+// Interviewer List , Update Before Deployment, UPDATED hehe
 const INTERVIEWERS = [
   "adith.manikonda2024@vitstudent.ac.in",
-  // "yuvraj.bansal2024@vitstudent.ac.in",
-  // "adithyanachiyappan.2024@vitstudent.ac.in",
-  // "pranjal.sahay2024@vitstudent.ac.in",
-  // "dakshata.abhyankar2024@vitstudent.ac.in",
-  // "arshia.ghosh2024@vitstudent.ac.in",
+  "yuvraj.bansal2024@vitstudent.ac.in",
+  "adithyanachiyappan.2024@vitstudent.ac.in",
+  "pranjal.sahay2024@vitstudent.ac.in",
+  "dakshata.abhyankar2024@vitstudent.ac.in",
+  "arshia.ghosh2024@vitstudent.ac.in",
   "sarthak.jain2024@vitstudent.ac.in",
-  // "anurag.thakur2024@vitstudent.ac.in",
-  // "aadya.agarwal2024b@vitstudent.ac.in",
-  // "ritwin.as2024@vitstudent.ac.in",
-  // "traya.jawahar2024@vitstudent.ac.in",
-  // "neha.damani2024@vitstudent.ac.in",
-  // "shubham.mishra2024@vitstudent.ac.in",
-  // "pooja.goel2023@vitstudent.ac.in",
-  // "riyan.johnson2024@vitstudent.ac.in",
-  // "anuraag.chakraborty2024@vitstudent.ac.in",
-  // "aayush.keshwani2024@vitstudent.ac.in",
-  // "shreya.yadav2024@vitstudent.ac.in",
-  // "jaanya.bagdi2024@vitstudent.ac.in",
-  // "manya.praveensingh2024@vitstudent.ac.in",
+  "anurag.thakur2024@vitstudent.ac.in",
+  "aadya.agarwal2024b@vitstudent.ac.in",
+  "ritwin.as2024@vitstudent.ac.in",
+  "traya.jawahar2024@vitstudent.ac.in",
+  "neha.damani2024@vitstudent.ac.in",
+  "shubham.mishra2024@vitstudent.ac.in",
+  "pooja.goel2023@vitstudent.ac.in",
+  "riyan.johnson2024@vitstudent.ac.in",
+  "anuraag.chakraborty2024@vitstudent.ac.in",
+  "aayush.keshwani2024@vitstudent.ac.in",
+  "shreya.yadav2024@vitstudent.ac.in",
+  "jaanya.bagdi2024@vitstudent.ac.in",
+  "manya.praveensingh2024@vitstudent.ac.in",
   "rishita.khetan2024@vitstudent.ac.in",
 ];
 const transporter = nodemailer.createTransport({
@@ -66,7 +66,6 @@ function emailTemplate({ candidateName, date, start, end, meetLink }) {
   .outer {
     width: 100%;
     max-width: 600px;
-    background-color: #000000 !important;
   }
 
   /* MOBILE FIRST */
@@ -115,15 +114,24 @@ function emailTemplate({ candidateName, date, start, end, meetLink }) {
 </head>
 
 <body>
-<table width="100%" bgcolor="#000000">
+
+<!-- WRAPPER 1 -->
+<table width="100%" cellpadding="0" cellspacing="0" bgcolor="#000000">
 <tr>
 <td align="center" bgcolor="#000000">
 
-<table class="outer" width="100%" align="center" bgcolor="#000000">
+<!-- WRAPPER 2 -->
+<table width="100%" cellpadding="0" cellspacing="0" bgcolor="#000000">
+<tr>
+<td align="center" bgcolor="#000000">
+
+<!-- WRAPPER 3 / OUTER -->
+<table class="outer" width="100%" cellpadding="0" cellspacing="0" align="center"
+       bgcolor="#000000" style="background-color:#000000;">
 
 <!-- HEADER IMAGE -->
 <tr>
-<td align="center" bgcolor="#000000">
+<td align="center" bgcolor="#000000" style="background-color:#000000;">
   <img
     src="cid:header_img"
     width="600"
@@ -133,15 +141,17 @@ function emailTemplate({ candidateName, date, start, end, meetLink }) {
 </td>
 </tr>
 
-<!-- SIDE-BY-SIDE CONTENT -->
+<!-- CONTENT -->
 <tr>
-<td align="center" bgcolor="#000000">
+<td align="center" bgcolor="#000000" style="background-color:#000000;">
 
-<table class="two-col" width="320" cellpadding="0" cellspacing="0" align="center" bgcolor="#000000">
+<table class="two-col" width="320" cellpadding="0" cellspacing="0" align="center"
+       bgcolor="#000000" style="background-color:#000000;">
 <tr>
 
 <!-- LEFT IMAGE -->
-<td width="150" valign="bottom" class="left-img" bgcolor="#000000">
+<td width="150" valign="bottom" class="left-img"
+    bgcolor="#000000" style="background-color:#000000;">
   <img
     src="cid:building_img"
     width="150"
@@ -155,6 +165,7 @@ function emailTemplate({ candidateName, date, start, end, meetLink }) {
   width="170"
   valign="top"
   class="text right-text"
+  bgcolor="#000000"
   style="padding-left:14px; background-color:#000000;"
 >
 
@@ -180,26 +191,30 @@ function emailTemplate({ candidateName, date, start, end, meetLink }) {
 </td>
 </tr>
 
-<!-- FOOTER (FORCED ORANGE, CLICKABLE) -->
+<!-- FOOTER (FORCED ORANGE, CLICKABLE, GMAIL-iOS SAFE) -->
 <tr>
 <td align="center">
 
 <table width="100%" cellpadding="0" cellspacing="0"
-       bgcolor="#FF8C42"
-       style="background-color:#FF8C42;">
+       bgcolor="#FF8C42" style="background-color:#FF8C42;">
 <tr>
-<td align="center" style="padding:14px; background-color:#FF8C42;">
+<td align="center"
+    bgcolor="#FF8C42"
+    style="padding:14px; background-color:#FF8C42;">
 
   <a href="https://www.instagram.com/mfc_vit" style="display:inline-block;">
-    <img src="cid:insta_icon" width="22" style="display:block; margin:0 12px;" />
+    <img src="cid:insta_icon" width="22"
+         style="display:block; margin:0 12px;" />
   </a>
 
   <a href="https://www.linkedin.com/company/mfcvit" style="display:inline-block;">
-    <img src="cid:linkedin_icon" width="22" style="display:block; margin:0 12px;" />
+    <img src="cid:linkedin_icon" width="22"
+         style="display:block; margin:0 12px;" />
   </a>
 
   <a href="mailto:mozillafirefox@vit.ac.in" style="display:inline-block;">
-    <img src="cid:mail_icon" width="22" style="display:block; margin:0 12px;" />
+    <img src="cid:mail_icon" width="22"
+         style="display:block; margin:0 12px;" />
   </a>
 
 </td>
@@ -213,6 +228,10 @@ function emailTemplate({ candidateName, date, start, end, meetLink }) {
 </td>
 </tr>
 </table>
+</td>
+</tr>
+</table>
+
 </body>
 </html>`;
 }
