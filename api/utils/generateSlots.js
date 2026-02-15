@@ -90,7 +90,7 @@ async function seedSlots() {
     console.log(
       "First Slot:",
       slots[0].startTime.toLocaleString("en-IN", { timeZone: "Asia/Kolkata" }),
-    );
+    );}
   } catch (err) {
     console.error("Error seeding slots:", err);
   } finally {
