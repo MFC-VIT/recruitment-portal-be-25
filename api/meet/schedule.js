@@ -248,10 +248,11 @@ const scheduleMeeting = async (req, res) => {
 
     // Convert string to Date object for accurate comparison
     const requestedTime = new Date(scheduletime);
-
-    if (requestedTime < new Date()) {
-      return res.status(400).json({ error: "Cannot book slots in the past." });
-    }
+    const currentTime = new Date();
+    const limitTime = 2 * 60 * 60 * 1000;
+    const bookingDeadline = new Date(requestedTime.getTime() - limitTime);
+    if (currentTime > bookingDeadline) {
+      return res.status(400).json({error: "Time limit to schedule this slot is over. Book another slot." });}
 
     //Find slot by matching the startTime in the DB
     const slotDoc = await InterviewSlot.findOne({ startTime: requestedTime });
