@@ -440,6 +440,7 @@ const updatePassword = async (req, res) => {
       user.password = hashedPass;
       user.verified = true;
       user.emailToken = null;
+      user.refreshToken = null;
       console.log("user:user", user);
       await user.save();
 
