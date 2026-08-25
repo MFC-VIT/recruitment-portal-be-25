@@ -350,12 +350,16 @@ const refreshToken = async (req, res) => {
     if (!user) {
       return res.status(404).json({ message: "Invalid refreshToken" });
     }
-    const storeRefeshToken = user.refreshToken;
-    if (!storeRefeshToken) {
-      return res.status(400).json({ message: "Invalid refrsh token" });
+    try {
+      jwt.verify(refreshToken, process.env.ACCESS_TOKEN_SECERT);
+    } catch (err) {
+      user.refreshToken = null;
+      await user.save();
+      return res
+        .status(401)
+        .json({ message: "refreshToken expired, please log in again" });
     }
-    user.tokenVersion += 1;
-    await user.save();
+
     const newAccessToken = jwt.sign(
       {
         id: user._id,
@@ -378,10 +382,12 @@ const refreshToken = async (req, res) => {
       process.env.ACCESS_TOKEN_SECERT,
       { expiresIn: "7d" },
     );
-    res.header("Authorization", `Bearer ${newAccessToken}`);
-    res.status(200).json({ accessToken: newAccessToken });
+    user.tokenVersion += 1;
     user.prevAccessToken.push(token);
     await user.save();
+
+    res.header("Authorization", `Bearer ${newAccessToken}`);
+    res.status(200).json({ accessToken: newAccessToken });
   } catch (error) {
     console.log(error);
     const response = new Response(500, null, error.message, false);
