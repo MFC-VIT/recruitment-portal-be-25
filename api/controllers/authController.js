@@ -10,6 +10,7 @@ const crypto = require("crypto");
 const nodemailer = require("nodemailer");
 const { v4: uuidv4 } = require("uuid");
 const MeetDetails = require("../models/meetModel");
+const Response = require("../utils/responseModel");
 
 require("dotenv").config();
 const signUp = async (req, res) => {
@@ -279,9 +280,9 @@ const login = async (req, res) => {
       res.status(404).json({ error: "User not found" });
     }
   } catch (error) {
-    const response = new Response(500, null, error.message, false);
-    res.status(500).json(response);
     console.log(error);
+    const response = new Response(500, null, error.message, false);
+    res.status(response.statusCode).json(response);
   }
 };
 
