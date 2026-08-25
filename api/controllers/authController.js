@@ -240,9 +240,9 @@ const login = async (req, res) => {
       email: email,
       verified: true,
     });
-    const meet = await MeetDetails.findOne({ user_id: user?._id });
-
     if (user && user.verified) {
+      const meet = await MeetDetails.findOne({ user_id: user._id });
+
       const validity = await bcrypt.compare(password, user.password);
       if (!validity) {
         res.status(400).json({ error: "Wrong password" });
