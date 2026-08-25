@@ -29,7 +29,7 @@ async function sendVerificationMail(user) {
       otp: hashedOTP,
       email: user.email,
       createdAt: Date.now(),
-      expiresAt: Date.now() + 54000,
+      expiresAt: Date.now() + 15 * 60 * 1000,
     });
     await newOTPVerification.save();
     await transporter.sendMail(mailOption);
