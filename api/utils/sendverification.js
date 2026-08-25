@@ -8,7 +8,7 @@ async function sendVerificationMail(user) {
   const transporter = createMailTransporter();
 
   try {
-    const otp = `${Math.floor(100000 + Math.random() * 90000)}`;
+    const otp = `${Math.floor(100000 + Math.random() * 900000)}`;
     const mailOption = {
       from: process.env.AUTH_EMAIL,
       to: user.email,
