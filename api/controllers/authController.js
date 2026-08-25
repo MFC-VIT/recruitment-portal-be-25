@@ -13,6 +13,25 @@ const MeetDetails = require("../models/meetModel");
 const Response = require("../utils/responseModel");
 
 require("dotenv").config();
+
+const buildTokenClaims = (user) => ({
+  id: user._id,
+  username: user.username,
+  email: user.email,
+  regno: user.regno,
+  verified: user.verified,
+  tech: user.tech,
+  design: user.design,
+  management: user.management,
+  admin: user.admin,
+  isProfileDone: user.isProfileDone,
+  isTechDone: user.isTechDone,
+  isManagementDone: user.isManagementDone,
+  isDesignDone: user.isDesignDone,
+  domain: user.domain,
+  isJC: user.isJC,
+  isSC: user.isSC,
+});
 const signUp = async (req, res) => {
   const { username, email, regno, password, confirmpassword } = req.body;
   console.log(req.body);
@@ -153,7 +172,39 @@ const verifyOTP = async (req, res) => {
           } else {
             await UserModel.updateOne({ _id: id }, { verified: true });
             await VerificationModel.deleteMany({ user_id: id });
-            res.status(200).json({ message: "verified" });
+
+            // Signing up is enough to be logged in - hand back a real session
+            // here instead of making the user go sign in again.
+            const verifiedUser = await UserModel.findById(id);
+            const claims = buildTokenClaims(verifiedUser);
+
+            const token = jwt.sign(claims, process.env.ACCESS_TOKEN_SECERT, {
+              expiresIn: "15d",
+            });
+            const refreshToken = jwt.sign(
+              claims,
+              process.env.ACCESS_TOKEN_SECERT,
+              { expiresIn: "7d" },
+            );
+
+            verifiedUser.refreshToken = refreshToken;
+            await verifiedUser.save();
+
+            res.status(200).json({
+              message: "verified",
+              token,
+              refreshToken,
+              id: verifiedUser._id,
+              username: verifiedUser.username,
+              email: verifiedUser.email,
+              regno: verifiedUser.regno,
+              verified: verifiedUser.verified,
+              admin: verifiedUser.admin,
+              isProfileDone: verifiedUser.isProfileDone,
+              domain: verifiedUser.domain,
+              isJC: verifiedUser.isJC,
+              isSC: verifiedUser.isSC,
+            });
           }
         }
       }
