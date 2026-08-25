@@ -102,12 +102,9 @@ const signUp = async (req, res) => {
         isSC: savedUser.isSC,
         isProfileDone: savedUser.isProfileDone,
       },
-      process.env.ACCESS_TOKEN_SECERT,
-      { expiresIn: "15d" }
+      process.env.ACCESS_TOKEN_SECERT, //Bro this spelling mistake has ben cascading since generations.... leaving as is
+      { expiresIn: "15d" },
     );
-
-    console.log(`User created ${savedUser}`);
-    console.log(`User token ${token}`);
 
     res.status(200).json({
       token,
@@ -226,7 +223,7 @@ const login = async (req, res) => {
             isJC: user.isJC,
             isSC: user.isSC,
           },
-          process.env.ACCESS_TOKEN_SECERT
+          process.env.ACCESS_TOKEN_SECERT,
         );
 
         const refreshToken = jwt.sign(
@@ -249,7 +246,7 @@ const login = async (req, res) => {
             isSC: user.isSC,
           },
           process.env.ACCESS_TOKEN_SECERT,
-          { expiresIn: "7d" }
+          { expiresIn: "7d" },
         );
 
         // Save refresh token to user
@@ -336,7 +333,7 @@ const refreshToken = async (req, res) => {
         isSC: user.isSC,
       },
       process.env.ACCESS_TOKEN_SECERT,
-      { expiresIn: "7d" }
+      { expiresIn: "7d" },
     );
     res.header("Authorization", `Bearer ${newAccessToken}`);
     res.status(200).json({ accessToken: newAccessToken });
