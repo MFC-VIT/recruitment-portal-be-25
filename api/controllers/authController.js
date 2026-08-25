@@ -10,8 +10,28 @@ const crypto = require("crypto");
 const nodemailer = require("nodemailer");
 const { v4: uuidv4 } = require("uuid");
 const MeetDetails = require("../models/meetModel");
+const Response = require("../utils/responseModel");
 
 require("dotenv").config();
+
+const buildTokenClaims = (user) => ({
+  id: user._id,
+  username: user.username,
+  email: user.email,
+  regno: user.regno,
+  verified: user.verified,
+  tech: user.tech,
+  design: user.design,
+  management: user.management,
+  admin: user.admin,
+  isProfileDone: user.isProfileDone,
+  isTechDone: user.isTechDone,
+  isManagementDone: user.isManagementDone,
+  isDesignDone: user.isDesignDone,
+  domain: user.domain,
+  isJC: user.isJC,
+  isSC: user.isSC,
+});
 const signUp = async (req, res) => {
   const { username, email, regno, password, confirmpassword } = req.body;
   console.log(req.body);
@@ -36,19 +56,10 @@ const signUp = async (req, res) => {
 
     console.log("userAvailable", userAvailable);
 
-    const userToDelete = await VerificationModel.findOne({ email });
-
-    console.log("userToDelete", userToDelete);
     if (userAvailable && !userAvailable.verified) {
-      if (Date.now() > userToDelete.expiresAt) {
-        await UserModel.deleteOne({ _id: userAvailable._id });
-        console.log(`Deleted unverified user: ${userAvailable.email}`);
-        return res.status(200).json({
-          error:
-            "Account already created and OTP is also sent but not verified. Please try again after 15 minutes.",
-        });
-      }
       await UserModel.deleteOne({ _id: userAvailable._id });
+      await VerificationModel.deleteMany({ user_id: userAvailable._id });
+      console.log(`Deleted unverified user: ${userAvailable.email}`);
       return res.status(200).json({
         error:
           "Account already created and OTP is also sent but not verified. Please try again after 15 minutes.",
@@ -152,7 +163,39 @@ const verifyOTP = async (req, res) => {
           } else {
             await UserModel.updateOne({ _id: id }, { verified: true });
             await VerificationModel.deleteMany({ user_id: id });
-            res.status(200).json({ message: "verified" });
+
+            // Signing up is enough to be logged in - hand back a real session
+            // here instead of making the user go sign in again.
+            const verifiedUser = await UserModel.findById(id);
+            const claims = buildTokenClaims(verifiedUser);
+
+            const token = jwt.sign(claims, process.env.ACCESS_TOKEN_SECERT, {
+              expiresIn: "15d",
+            });
+            const refreshToken = jwt.sign(
+              claims,
+              process.env.ACCESS_TOKEN_SECERT,
+              { expiresIn: "7d" },
+            );
+
+            verifiedUser.refreshToken = refreshToken;
+            await verifiedUser.save();
+
+            res.status(200).json({
+              message: "verified",
+              token,
+              refreshToken,
+              id: verifiedUser._id,
+              username: verifiedUser.username,
+              email: verifiedUser.email,
+              regno: verifiedUser.regno,
+              verified: verifiedUser.verified,
+              admin: verifiedUser.admin,
+              isProfileDone: verifiedUser.isProfileDone,
+              domain: verifiedUser.domain,
+              isJC: verifiedUser.isJC,
+              isSC: verifiedUser.isSC,
+            });
           }
         }
       }
@@ -197,9 +240,9 @@ const login = async (req, res) => {
       email: email,
       verified: true,
     });
-    const meet = await MeetDetails.findOne({ user_id: user?._id });
-
     if (user && user.verified) {
+      const meet = await MeetDetails.findOne({ user_id: user._id });
+
       const validity = await bcrypt.compare(password, user.password);
       if (!validity) {
         res.status(400).json({ error: "Wrong password" });
@@ -279,9 +322,9 @@ const login = async (req, res) => {
       res.status(404).json({ error: "User not found" });
     }
   } catch (error) {
-    const response = new Response(500, null, error.message, false);
-    res.status(500).json(response);
     console.log(error);
+    const response = new Response(500, null, error.message, false);
+    res.status(response.statusCode).json(response);
   }
 };
 
@@ -307,12 +350,16 @@ const refreshToken = async (req, res) => {
     if (!user) {
       return res.status(404).json({ message: "Invalid refreshToken" });
     }
-    const storeRefeshToken = user.refreshToken;
-    if (!storeRefeshToken) {
-      return res.status(400).json({ message: "Invalid refrsh token" });
+    try {
+      jwt.verify(refreshToken, process.env.ACCESS_TOKEN_SECERT);
+    } catch (err) {
+      user.refreshToken = null;
+      await user.save();
+      return res
+        .status(401)
+        .json({ message: "refreshToken expired, please log in again" });
     }
-    user.tokenVersion += 1;
-    await user.save();
+
     const newAccessToken = jwt.sign(
       {
         id: user._id,
@@ -335,10 +382,12 @@ const refreshToken = async (req, res) => {
       process.env.ACCESS_TOKEN_SECERT,
       { expiresIn: "7d" },
     );
-    res.header("Authorization", `Bearer ${newAccessToken}`);
-    res.status(200).json({ accessToken: newAccessToken });
+    user.tokenVersion += 1;
     user.prevAccessToken.push(token);
     await user.save();
+
+    res.header("Authorization", `Bearer ${newAccessToken}`);
+    res.status(200).json({ accessToken: newAccessToken });
   } catch (error) {
     console.log(error);
     const response = new Response(500, null, error.message, false);
@@ -391,6 +440,7 @@ const updatePassword = async (req, res) => {
       user.password = hashedPass;
       user.verified = true;
       user.emailToken = null;
+      user.refreshToken = null;
       console.log("user:user", user);
       await user.save();
 

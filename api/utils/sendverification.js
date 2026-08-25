@@ -8,7 +8,7 @@ async function sendVerificationMail(user) {
   const transporter = createMailTransporter();
 
   try {
-    const otp = `${Math.floor(100000 + Math.random() * 90000)}`;
+    const otp = `${Math.floor(100000 + Math.random() * 900000)}`;
     const mailOption = {
       from: process.env.AUTH_EMAIL,
       to: user.email,
@@ -29,7 +29,7 @@ async function sendVerificationMail(user) {
       otp: hashedOTP,
       email: user.email,
       createdAt: Date.now(),
-      expiresAt: Date.now() + 54000,
+      expiresAt: Date.now() + 15 * 60 * 1000,
     });
     await newOTPVerification.save();
     await transporter.sendMail(mailOption);
