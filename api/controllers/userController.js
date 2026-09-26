@@ -216,8 +216,8 @@ const getuser = async (req, res) => {
     ]);
 
     if (userData.length === 0) {
-      const response = new Response(400, null, "User not found", false);
-      res.status(response.statusCode).json(response);
+      const response = new Response(404, null, "User not found", false);
+      return res.status(response.statusCode).json(response);
     }
     const response = new Response(200, userData[0], "User Data", true);
     res.status(response.statusCode).json(response);
