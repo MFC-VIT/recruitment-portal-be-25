@@ -22,28 +22,28 @@ router.get(
   "/userstech/:id",
   validateToken,
   validateVerify,
-  // isAdmin,
+  isAdmin,
   getAllUserTech
 );
 router.get(
   "/usersmanagement/:id",
   validateToken,
   validateVerify,
-  // isAdmin,
+  isAdmin,
   getAllUserManagement
 );
 router.get(
   "/usersdesign/:id",
   validateToken,
   validateVerify,
-  // isAdmin,
+  isAdmin,
   getAllUserDesign
 );
 router.put(
   "/updatestatus/:id",
   validateToken,
   validateVerify,
-  // isAdmin,
+  isAdmin,
   updateUserStatus
 );
 router.put(
