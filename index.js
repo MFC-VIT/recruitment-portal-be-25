@@ -31,13 +31,6 @@ app.use("/upload", taskRoute);
 app.use("/admin", adminRoute);
 app.use("/applicatiostatus", statusRoute);
 app.use("/api/meet", meetRoute);
-// Backwards-compatible endpoints used by the frontend (some FE code calls these root paths)
-// Keep these mounted in addition to /api/meet so we don't need to change the frontend.
-const { scheduleMeeting, cancelMeeting } = require("./api/meet/schedule");
-app.post("/schedule", scheduleMeeting);
-app.post("/cancel", cancelMeeting);
-// Google Meet OAuth Routes
-
 app.listen(port, () => {
   console.log(`Server running on port ${port}`);
 });
