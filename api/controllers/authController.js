@@ -14,7 +14,14 @@ const Response = require("../utils/responseModel");
 
 require("dotenv").config();
 
-const buildTokenClaims = (user) => ({
+const {
+  buildTokenClaims,
+  signAccessToken,
+  signRefreshToken,
+  verifyRefreshToken,
+} = require("../utils/tokens");
+
+const legacyBuildTokenClaims = (user) => ({
   id: user._id,
   username: user.username,
   email: user.email,
@@ -247,57 +254,13 @@ const login = async (req, res) => {
       if (!validity) {
         res.status(400).json({ error: "Wrong password" });
       } else {
-        const token = jwt.sign(
-          {
-            id: user._id,
-            username: user.username,
-            email: user.email,
-            regno: user.regno,
-            verified: user.verified,
-            tech: user.tech,
-            design: user.design,
-            management: user.management,
-            admin: user.admin,
-            isProfileDone: user.isProfileDone,
-            isTechDone: user.isTechDone,
-            isManagementDone: user.isManagementDone,
-            isDesignDone: user.isDesignDone,
-            domain: user.domain,
-            isJC: user.isJC,
-            isSC: user.isSC,
-          },
-          process.env.ACCESS_TOKEN_SECERT,
-        );
-
-        const refreshToken = jwt.sign(
-          {
-            id: user._id,
-            username: user.username,
-            email: user.email,
-            regno: user.regno,
-            verified: user.verified,
-            tech: user.tech,
-            design: user.design,
-            management: user.management,
-            admin: user.admin,
-            isProfileDone: user.isProfileDone,
-            isTechDone: user.isTechDone,
-            isManagementDone: user.isManagementDone,
-            isDesignDone: user.isDesignDone,
-            domain: user.domain,
-            isJC: user.isJC,
-            isSC: user.isSC,
-          },
-          process.env.ACCESS_TOKEN_SECERT,
-          { expiresIn: "7d" },
-        );
+        const token = signAccessToken(user);
+        const refreshToken = signRefreshToken(user);
 
         // Save refresh token to user
         user.refreshToken = refreshToken;
         await user.save();
 
-        console.log(`User created login : ${user}`);
-        console.log(`User token login: ${token}`);
         res.status(200).json({
           token,
           refreshToken,
