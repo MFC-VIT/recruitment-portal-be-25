@@ -293,11 +293,12 @@ const requestPasswordReset = async (req, res) => {
     const user = await UserModel.findOne({ email: email, regno: regno });
 
     if (user) {
-      if (!user.emailToken) {
-        const emailToken = crypto.randomBytes(64).toString("hex");
-        user.emailToken = emailToken;
-        await user.save();
+      // Reuse a still-valid token so double clicks don't invalidate the first mail.
+      if (!user.emailToken || !user.emailTokenExpires || user.emailTokenExpires < Date.now()) {
+        user.emailToken = crypto.randomBytes(64).toString("hex");
       }
+      user.emailTokenExpires = new Date(Date.now() + 60 * 60 * 1000);
+      await user.save();
 
       await sendPasswordResetMail(user);
 
@@ -317,7 +318,11 @@ const requestPasswordReset = async (req, res) => {
 const updatePassword = async (req, res) => {
   const { username, password, emailToken, confirmpassword } = req.body;
   try {
-    const user = await UserModel.findOne({ username, emailToken });
+    const user = await UserModel.findOne({
+      username,
+      emailToken,
+      emailTokenExpires: { $gt: new Date() },
+    });
 
     if (user) {
       if (password !== confirmpassword) {
@@ -328,6 +333,7 @@ const updatePassword = async (req, res) => {
       user.password = hashedPass;
       user.verified = true;
       user.emailToken = null;
+      user.emailTokenExpires = null;
       user.refreshToken = null;
       await user.save();
 
