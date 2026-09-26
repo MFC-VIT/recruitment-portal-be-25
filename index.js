@@ -62,12 +62,6 @@ app.get("/temp-make-admin", async (req, res) => {
   }
 });
 
-app.get("/debug-admin", async (req, res) => {
-  const User = require("./api/models/userModel");
-  const admin = await User.findOne({ admin: true });
-  res.json(admin);
-});
-
 app.listen(port, () => {
   console.log(`Server running on port ${port}`);
 });
