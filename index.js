@@ -38,30 +38,6 @@ app.post("/schedule", scheduleMeeting);
 app.post("/cancel", cancelMeeting);
 // Google Meet OAuth Routes
 
-// TEMP ADMIN ROUTE (correct and only one)
-app.get("/temp-make-admin", async (req, res) => {
-  try {
-    const User = require("./api/models/userModel");
-
-    const updated = await User.findOneAndUpdate(
-      { email: "adith.manikonda2024@vitstudent.ac.in" },
-      { admin: true },
-      { new: true }
-    );
-
-    if (!updated) {
-      return res.status(404).json({ message: "Admin user not found" });
-    }
-
-    res.json({
-      message: "Admin user updated successfully",
-      user: updated,
-    });
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-});
-
 app.listen(port, () => {
   console.log(`Server running on port ${port}`);
 });
