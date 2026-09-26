@@ -15,7 +15,9 @@ connectDb();
 const app = express();
 const port = process.env.PORT || 5000;
 
-app.use(express.json());
+// Azure App Service sits behind a proxy; without this every request shares one IP.
+app.set("trust proxy", 1);
+app.use(express.json({ limit: "1mb" }));
 app.use(cors());
 
 // Health Check
