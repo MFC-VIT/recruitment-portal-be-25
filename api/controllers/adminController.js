@@ -111,7 +111,8 @@ const getAllUser = async (req, res) => {
     }
 
     if (regno) {
-      filter.regno = { $regex: new RegExp(regno, "i") };
+      const escaped = String(regno).replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+      filter.regno = { $regex: new RegExp(escaped, "i") };
     }
 
     // if (name) {
@@ -234,7 +235,8 @@ const getAllUserTech = async (req, res) => {
     }
 
     if (regno) {
-      filter.regno = { $regex: new RegExp(regno, "i") };
+      const escaped = String(regno).replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+      filter.regno = { $regex: new RegExp(escaped, "i") };
     }
 
     console.log("filter", filter);
@@ -311,7 +313,8 @@ const getAllUserDesign = async (req, res) => {
     }
 
     if (regno) {
-      filter.regno = { $regex: new RegExp(regno, "i") };
+      const escaped = String(regno).replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+      filter.regno = { $regex: new RegExp(escaped, "i") };
     }
 
     console.log("filter", filter);
@@ -388,7 +391,8 @@ const getAllUserManagement = async (req, res) => {
     }
 
     if (regno) {
-      filter.regno = { $regex: new RegExp(regno, "i") };
+      const escaped = String(regno).replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+      filter.regno = { $regex: new RegExp(escaped, "i") };
     }
 
     console.log("filter", filter);
