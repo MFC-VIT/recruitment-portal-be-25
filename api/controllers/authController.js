@@ -2,7 +2,6 @@ const UserModel = require("../models/userModel");
 const VerificationModel = require("../models/verificationModel");
 const sendVerificationMail = require("../utils/sendverification");
 const sendPasswordResetMail = require("../utils/sendverificationPassword");
-const allowedEmailsData = require("../../allowedEmails.json");
 
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcrypt");
@@ -24,12 +23,6 @@ const {
 const signUp = async (req, res) => {
   const { username, email, regno, password, confirmpassword } = req.body;
   try {
-    // const emailList = allowedEmailsData.allowedEmails;
-    // if (!emailList.includes(email)) {
-    //   return res
-    //     .status(200)
-    //     .json({ error: "User have not enrolled in MFC-VIT" });
-    // }
     if (!username || !email || !regno || !password || !confirmpassword) {
       return res.status(200).json({ error: "All fields are required" });
     }
