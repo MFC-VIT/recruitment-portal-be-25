@@ -118,7 +118,6 @@ const getAllUser = async (req, res) => {
     // if (name) {
     //   filter.username = { $regex: new RegExp(name, "i") };
     // }
-    console.log("filter", filter);
 
     const users = await UserModel.aggregate([
       {
@@ -201,7 +200,7 @@ const getAllUser = async (req, res) => {
       { $limit: limit },
     ]);
     const response = new Response (
-      100,
+      200,
       users,
       "Users Fetched Successfully",
       true,
@@ -239,7 +238,6 @@ const getAllUserTech = async (req, res) => {
       filter.regno = { $regex: new RegExp(escaped, "i") };
     }
 
-    console.log("filter", filter);
 
     const users = await UserModel.aggregate([
       // {
@@ -279,7 +277,7 @@ const getAllUserTech = async (req, res) => {
     ]);
 
     const response = new Response (
-      100,
+      200,
       users,
       "Users Fetched Successfully",
       true,
@@ -317,7 +315,6 @@ const getAllUserDesign = async (req, res) => {
       filter.regno = { $regex: new RegExp(escaped, "i") };
     }
 
-    console.log("filter", filter);
 
     const users = await UserModel.aggregate([
       // {
@@ -357,7 +354,7 @@ const getAllUserDesign = async (req, res) => {
     ]);
 
     const response = new Response (
-      100,
+      200,
       users,
       "Users Fetched Successfully",
       true,
@@ -395,7 +392,6 @@ const getAllUserManagement = async (req, res) => {
       filter.regno = { $regex: new RegExp(escaped, "i") };
     }
 
-    console.log("filter", filter);
 
     const users = await UserModel.aggregate([
       // {
@@ -435,7 +431,7 @@ const getAllUserManagement = async (req, res) => {
     ]);
 
     const response = new Response (
-      100,
+      200,
       users,
       "Users Fetched Successfully",
       true,
