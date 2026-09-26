@@ -11,6 +11,7 @@ const {
 const isAdmin = require("../middleware/validateAdmin");
 const validateToken = require("../middleware/validateTokenHandler");
 const validateVerify = require("../middleware/validateVerify");
+const validateUser = require("../middleware/validateUser");
 const app = express();
 
 app.use(express.json());
@@ -54,13 +55,6 @@ router.put(
   makeAdmin
 );
 
-router.post(
-  "/response",
-  // validateToken,
-  // validateVerify,
-  // isAdmin,
-  getUserByRegNo
-);
-// Public endpoint to fetch all user responses (used by Admin UI Browse All Responses)
-router.get("/responses", getAllUser);
+router.post("/response", validateUser, validateVerify, isAdmin, getUserByRegNo);
+router.get("/responses", validateUser, validateVerify, isAdmin, getAllUser);
 module.exports = router;
