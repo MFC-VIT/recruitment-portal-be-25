@@ -3,11 +3,8 @@ const VerificationModel = require("../models/verificationModel");
 const sendVerificationMail = require("../utils/sendverification");
 const sendPasswordResetMail = require("../utils/sendverificationPassword");
 
-const jwt = require("jsonwebtoken");
 const bcrypt = require("bcrypt");
 const crypto = require("crypto");
-const nodemailer = require("nodemailer");
-const { v4: uuidv4 } = require("uuid");
 const MeetDetails = require("../models/meetModel");
 const Response = require("../utils/responseModel");
 
