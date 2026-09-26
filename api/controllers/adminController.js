@@ -462,8 +462,9 @@ const updateUserStatus = async (req, res) => {
     // for (const reg of regno) {
       const user = await UserModel.findOne({ regno: regno });
       if (!user) {
-        errorMessages.push(`User with regno ${regno} not found`);
-        // continue;
+        return res
+          .status(404)
+          .json({ message: `User with regno ${regno} not found` });
       }
 
       if (tech !== undefined) {
