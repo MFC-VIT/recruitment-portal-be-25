@@ -174,16 +174,8 @@ const verifyOTP = async (req, res) => {
             // Signing up is enough to be logged in - hand back a real session
             // here instead of making the user go sign in again.
             const verifiedUser = await UserModel.findById(id);
-            const claims = buildTokenClaims(verifiedUser);
-
-            const token = jwt.sign(claims, process.env.ACCESS_TOKEN_SECERT, {
-              expiresIn: "15d",
-            });
-            const refreshToken = jwt.sign(
-              claims,
-              process.env.ACCESS_TOKEN_SECERT,
-              { expiresIn: "7d" },
-            );
+            const token = signAccessToken(verifiedUser);
+            const refreshToken = signRefreshToken(verifiedUser);
 
             verifiedUser.refreshToken = refreshToken;
             await verifiedUser.save();
