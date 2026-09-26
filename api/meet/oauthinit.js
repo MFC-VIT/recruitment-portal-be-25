@@ -18,7 +18,7 @@ const oauthInit = async (req, res) => {
 
     const state = jwt.sign(
       { id: String(admin._id), purpose: "google-oauth" },
-      process.env.ACCESS_TOKEN_SECERT,
+      `${process.env.ACCESS_TOKEN_SECERT}:google-oauth`,
       { expiresIn: "10m" },
     );
 

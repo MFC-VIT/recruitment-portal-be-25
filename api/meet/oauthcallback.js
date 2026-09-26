@@ -14,7 +14,10 @@ const oauthCallback = async (req, res) => {
 
     let adminId;
     try {
-      const decoded = jwt.verify(String(state || ""), process.env.ACCESS_TOKEN_SECERT);
+      const decoded = jwt.verify(
+        String(state || ""),
+        `${process.env.ACCESS_TOKEN_SECERT}:google-oauth`,
+      );
       if (decoded.purpose !== "google-oauth") throw new Error("bad state");
       adminId = decoded.id;
     } catch (e) {
