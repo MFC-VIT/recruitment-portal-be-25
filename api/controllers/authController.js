@@ -125,6 +125,15 @@ const verifyOTP = async (req, res) => {
         } else {
           const validOTP = await bcrypt.compare(otp, hashedOTP);
           if (!validOTP) {
+            // A code dies after 5 wrong guesses; the user has to request a new one.
+            user.attempts = (user.attempts || 0) + 1;
+            if (user.attempts >= 5) {
+              await VerificationModel.deleteMany({ user_id: id });
+              return res.status(200).json({
+                message: "Too many wrong attempts. Please request a new OTP.",
+              });
+            }
+            await user.save();
             res
               .status(200)
               .json({ message: "Invalid please check inbox for latest otp" });
