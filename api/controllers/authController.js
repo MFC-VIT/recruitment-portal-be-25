@@ -249,29 +249,18 @@ const login = async (req, res) => {
 };
 
 const refreshToken = async (req, res) => {
-  const { refreshToken } = req.body;
-  let token;
-  let authHeader = req.headers.authorization || req.headers.Authorization;
-
-  if (!authHeader || !authHeader.startsWith("Bearer")) {
-    return res
-      .status(401)
-      .json({ message: "User is not authorized or token missing" });
-  }
-
-  token = authHeader.split(" ")[1];
+  const { refreshToken } = req.body || {};
 
   if (!refreshToken) {
     return res.status(400).json({ message: "refreshToken is required." });
   }
   try {
     const user = await UserModel.findOne({ refreshToken: refreshToken });
-    console.log("user refresh:", user);
     if (!user) {
-      return res.status(404).json({ message: "Invalid refreshToken" });
+      return res.status(401).json({ message: "Invalid refreshToken" });
     }
     try {
-      jwt.verify(refreshToken, process.env.ACCESS_TOKEN_SECERT);
+      verifyRefreshToken(refreshToken);
     } catch (err) {
       user.refreshToken = null;
       await user.save();
@@ -280,30 +269,8 @@ const refreshToken = async (req, res) => {
         .json({ message: "refreshToken expired, please log in again" });
     }
 
-    const newAccessToken = jwt.sign(
-      {
-        id: user._id,
-        username: user.username,
-        email: user.email,
-        regno: user.regno,
-        verified: user.verified,
-        tech: user.tech,
-        design: user.design,
-        management: user.management,
-        admin: user.admin,
-        isProfileDone: user.isProfileDone,
-        isTechDone: user.isTechDone,
-        isManagementDone: user.isManagementDone,
-        isDesignDone: user.isDesignDone,
-        domain: user.domain,
-        isJC: user.isJC,
-        isSC: user.isSC,
-      },
-      process.env.ACCESS_TOKEN_SECERT,
-      { expiresIn: "7d" },
-    );
+    const newAccessToken = signAccessToken(user);
     user.tokenVersion += 1;
-    user.prevAccessToken.push(token);
     await user.save();
 
     res.header("Authorization", `Bearer ${newAccessToken}`);
