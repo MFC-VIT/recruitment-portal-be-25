@@ -21,24 +21,6 @@ const {
   verifyRefreshToken,
 } = require("../utils/tokens");
 
-const legacyBuildTokenClaims = (user) => ({
-  id: user._id,
-  username: user.username,
-  email: user.email,
-  regno: user.regno,
-  verified: user.verified,
-  tech: user.tech,
-  design: user.design,
-  management: user.management,
-  admin: user.admin,
-  isProfileDone: user.isProfileDone,
-  isTechDone: user.isTechDone,
-  isManagementDone: user.isManagementDone,
-  isDesignDone: user.isDesignDone,
-  domain: user.domain,
-  isJC: user.isJC,
-  isSC: user.isSC,
-});
 const signUp = async (req, res) => {
   const { username, email, regno, password, confirmpassword } = req.body;
   console.log(req.body);
