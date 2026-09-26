@@ -23,7 +23,6 @@ const {
 
 const signUp = async (req, res) => {
   const { username, email, regno, password, confirmpassword } = req.body;
-  console.log(req.body);
   try {
     // const emailList = allowedEmailsData.allowedEmails;
     // if (!emailList.includes(email)) {
@@ -43,7 +42,6 @@ const signUp = async (req, res) => {
       email,
     });
 
-    console.log("userAvailable", userAvailable);
 
     if (userAvailable && !userAvailable.verified) {
       await UserModel.deleteOne({ _id: userAvailable._id });
@@ -63,7 +61,6 @@ const signUp = async (req, res) => {
 
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
-    console.log("Hashed Password: ", hashedPassword);
     const isJC = regno.startsWith("25");
     const isSC = !isJC;
 
@@ -118,7 +115,6 @@ const verifyOTP = async (req, res) => {
       } else {
         const { expiresAt } = user;
         const hashedOTP = user.otp;
-        console.log(hashedOTP, user);
 
         if (expiresAt < Date.now()) {
           await VerificationModel.deleteMany({ user_id: id });
@@ -164,7 +160,6 @@ const verifyOTP = async (req, res) => {
         }
       }
 
-      console.log("user", user);
     }
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -289,11 +284,9 @@ const requestPasswordReset = async (req, res) => {
     const user = await UserModel.findOne({ email: email, regno: regno });
 
     if (user) {
-      console.log(user);
       if (!user.emailToken) {
         const emailToken = crypto.randomBytes(64).toString("hex");
         user.emailToken = emailToken;
-        console.log(emailToken);
         await user.save();
       }
 
@@ -316,7 +309,6 @@ const updatePassword = async (req, res) => {
   const { username, password, emailToken, confirmpassword } = req.body;
   try {
     const user = await UserModel.findOne({ username, emailToken });
-    console.log(req.body);
 
     if (user) {
       if (password !== confirmpassword) {
@@ -328,7 +320,6 @@ const updatePassword = async (req, res) => {
       user.verified = true;
       user.emailToken = null;
       user.refreshToken = null;
-      console.log("user:user", user);
       await user.save();
 
       res.status(200).json({ message: "Password updated successfully." });
