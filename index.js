@@ -68,21 +68,6 @@ app.get("/debug-admin", async (req, res) => {
   res.json(admin);
 });
 
-app.get("/force-save-refresh-token", async (req, res) => {
-  const User = require("./api/models/userModel");
-
-  const updated = await User.findByIdAndUpdate(
-    "693556536ea5209966d1507c",
-    {
-      googleRefreshToken:
-        "1//0g8bk1SkauiIJCgYIARAAGBASNwF-L9IrOp4V-IY5ZlWiQ9d3b2zTqaBWWMeYQeCSh4BR9b8RxaUydq0JfnuUQsy64frJiwUw2O8",
-    },
-    { new: true }
-  );
-
-  res.json(updated);
-});
-
 app.listen(port, () => {
   console.log(`Server running on port ${port}`);
 });
