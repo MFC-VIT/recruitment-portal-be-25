@@ -237,12 +237,13 @@ function emailTemplate({ candidateName, date, start, end, meetLink }) {
 }
 const scheduleMeeting = async (req, res) => {
   try {
-    // Request for these three from the Frontend - Switched Slot for scheduleTime
-    const { candidateId, domains, scheduletime } = req.body;
+    // The candidate is always the logged-in user; any candidateId in the body is ignored.
+    const candidateId = req.userId;
+    const { domains, scheduletime } = req.body;
 
-    if (!candidateId || !scheduletime) {
+    if (!scheduletime) {
       return res.status(400).json({
-        error: "Missing required fields: candidateId or scheduletime",
+        error: "Missing required field: scheduletime",
       });
     }
 
@@ -414,11 +415,7 @@ const scheduleMeeting = async (req, res) => {
 
 const cancelMeeting = async (req, res) => {
   try {
-    const { candidateId } = req.body;
-
-    if (!candidateId) {
-      return res.status(400).json({ error: "Missing candidateId" });
-    }
+    const candidateId = req.userId;
 
     const booking = await MeetDetails.findOne({ user_id: candidateId });
     if (!booking) {
