@@ -87,24 +87,7 @@ const signUp = async (req, res) => {
 
     await sendVerificationMail(savedUser);
 
-    const token = jwt.sign(
-      {
-        id: savedUser._id,
-        username: savedUser.username,
-        email: savedUser.email,
-        regno: savedUser.regno,
-        verified: savedUser.verified,
-        tech: savedUser.tech,
-        design: savedUser.design,
-        management: savedUser.management,
-        admin: savedUser.admin,
-        isJC: savedUser.isJC,
-        isSC: savedUser.isSC,
-        isProfileDone: savedUser.isProfileDone,
-      },
-      process.env.ACCESS_TOKEN_SECERT, //Bro this spelling mistake has ben cascading since generations.... leaving as is
-      { expiresIn: "15d" },
-    );
+    const token = signAccessToken(savedUser);
 
     res.status(200).json({
       token,
