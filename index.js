@@ -8,6 +8,7 @@ const taskRoute = require("./api/routes/taskRoute");
 const adminRoute = require("./api/routes/adminRoute");
 const statusRoute = require("./api/routes/statusRoute");
 const meetRoute = require("./api/routes/meetRoute");
+const questionRoute = require("./api/routes/questionRoute");
 const connectDb = require("./api/db/dbConnection");
 
 connectDb();
@@ -33,6 +34,7 @@ app.use("/upload", taskRoute);
 app.use("/admin", adminRoute);
 app.use("/applicatiostatus", statusRoute);
 app.use("/api/meet", meetRoute);
+app.use("/questions", questionRoute);
 app.listen(port, () => {
   console.log(`Server running on port ${port}`);
 });
