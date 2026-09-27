@@ -26,9 +26,12 @@ const SOURCES = [
   const questions = await Question.find({}).lean();
   if (questions.length === 0) throw new Error("No questions found. Run seedQuestions.js --apply first.");
 
-  const report = { migrated: 0, skippedExisting: 0, empty: 0, unmapped: {} };
+  const report = { migrated: 0, skippedExisting: 0, duplicates: 0, empty: 0, unmapped: {} };
+  const seen = new Set();
   for (const [domain, collection] of SOURCES) {
-    const docs = await db.collection(collection).find({}).toArray();
+    // Some users have several legacy docs per domain; the submitted, most
+    // recent one is processed first and wins, later ones count as duplicates.
+    const docs = await db.collection(collection).find({}).sort({ isDone: -1, updatedAt: -1 }).toArray();
     const userIds = docs.map((d) => d.user_id);
     const users = new Map(
       (await User.find({ _id: { $in: userIds } }).select("isSC").lean()).map((u) => [String(u._id), u])
@@ -42,6 +45,12 @@ const SOURCES = [
         report.empty++;
         continue;
       }
+      const seenKey = `${domain}:${doc.user_id}`;
+      if (seen.has(seenKey)) {
+        report.duplicates++;
+        continue;
+      }
+      seen.add(seenKey);
       const exists = await Submission.exists({ user_id: doc.user_id, domain });
       if (exists && !overwrite) {
         report.skippedExisting++;
