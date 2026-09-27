@@ -131,8 +131,8 @@ const updateUserStatus = async (req, res) => {
     for (const domain of DOMAINS) {
       const next = req.body[domain];
       if (next === undefined) continue;
-      if (![-1, 0, 1, 2].includes(Number(next))) {
-        return send(res, 400, null, `${domain} must be -1, 0, 1 or 2`);
+      if (![-1, 0, 1, 2, 3].includes(Number(next))) {
+        return send(res, 400, null, `${domain} must be between -1 and 3`);
       }
       if (user[domain] === Number(next)) continue;
       events.push({

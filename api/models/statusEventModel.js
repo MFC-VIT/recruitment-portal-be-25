@@ -2,7 +2,8 @@ const mongoose = require("mongoose");
 const Schema = mongoose.Schema;
 
 // Append-only log of every change to a candidate's round in a domain.
-// Round values: -1 rejected, 0 under review, 1 interview round, 2 selected.
+// Round values: -1 rejected, 0 under review, 1 interview round, 2 selected,
+// 3 core (only shown when the user is also isCore).
 const StatusEventSchema = new Schema(
   {
     user_id: {
