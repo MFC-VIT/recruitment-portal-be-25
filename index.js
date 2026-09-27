@@ -10,6 +10,7 @@ const statusRoute = require("./api/routes/statusRoute");
 const meetRoute = require("./api/routes/meetRoute");
 const questionRoute = require("./api/routes/questionRoute");
 const pushRoute = require("./api/routes/pushRoute");
+const githubRoute = require("./api/routes/githubRoute");
 const connectDb = require("./api/db/dbConnection");
 
 connectDb();
@@ -37,6 +38,7 @@ app.use("/applicatiostatus", statusRoute);
 app.use("/api/meet", meetRoute);
 app.use("/questions", questionRoute);
 app.use("/push", pushRoute);
+app.use("/github", githubRoute);
 // In-process reminder sweep every 5 minutes; /api/meet/reminders/run covers
 // the case where the instance is asleep.
 if (process.env.DISABLE_REMINDERS !== "true") {
