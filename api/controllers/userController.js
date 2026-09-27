@@ -142,26 +142,17 @@ const getuser = async (req, res) => {
       },
       {
         $lookup: {
-          from: "techtasks",
+          from: "submissions",
           localField: "_id",
           foreignField: "user_id",
-          as: "techTasks",
+          as: "submissions",
         },
       },
       {
-        $lookup: {
-          from: "designtasks",
-          localField: "_id",
-          foreignField: "user_id",
-          as: "designTasks",
-        },
-      },
-      {
-        $lookup: {
-          from: "managementtasks",
-          localField: "_id",
-          foreignField: "user_id",
-          as: "managementTasks",
+        $addFields: {
+          techTasks: { $filter: { input: "$submissions", cond: { $eq: ["$$this.domain", "tech"] } } },
+          designTasks: { $filter: { input: "$submissions", cond: { $eq: ["$$this.domain", "design"] } } },
+          managementTasks: { $filter: { input: "$submissions", cond: { $eq: ["$$this.domain", "management"] } } },
         },
       },
       {
