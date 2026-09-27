@@ -59,7 +59,7 @@ router.delete("/", validateUser, async (req, res) => {
 
 // The applicant's own public repos, newest activity first, for the repo picker.
 router.get("/repos", rateLimiter_10min_100req, validateUser, async (req, res) => {
-  const user = await UserModel.findById(req.userId).select("+github.token github").lean();
+  const user = await UserModel.findById(req.userId).select("+github.token").lean();
   if (!user?.github?.id) return res.status(400).json({ message: "Connect GitHub first" });
 
   const token = open(user.github.token);
