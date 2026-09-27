@@ -44,15 +44,40 @@ const expect = (name, cond, extra) => { console.log(`${cond ? "PASS" : "FAIL"}  
   r = await call("GET", "/admin/responses", { token: adminTok }); expect("admin can list responses", r.status === 200, r.status);
   r = await call("PUT", `/admin/updatestatus/${admin._id}`, { token: adminTok, body: { regno: "nope" } }); expect("unknown regno 404", r.status === 404, r);
 
+  // questions + submissions
+  await mongoose.model("Question").insertMany(require(BE + "/api/seed/questions.json"));
+  r = await call("GET", "/questions/management", { token: candTok });
+  expect("juniors get junior management questions", r.status === 200 && r.data.data.questions.every((q) => q.audience !== "senior"), r.status);
+  expect("rubric never sent to candidates", r.data.data.questions.every((q) => !("rubric" in q) && !("legacyField" in q)));
+  expect("finance (inactive) hidden", !r.data.data.subdomains.some((s) => s.value === "finance"), r.data.data.subdomains);
+  r = await call("GET", "/questions/tech", { token: candTok });
+  expect("tech lists cyber-sec and ml", ["cyber-sec", "ml"].every((v) => r.data.data.subdomains.some((s) => s.value === v)));
+
   // task ownership
-  r = await call("PATCH", `/upload/tech/${other._id}`, { token: candTok, body: { subdomain: ["frontend"], question1: ["x"] } });
+  r = await call("PATCH", `/upload/tech/${other._id}`, { token: candTok, body: { subdomain: ["frontend"], answers: { "tech-portfolio": "x" } } });
   expect("cannot write another user's task", r.status === 403, r);
-  r = await call("PATCH", `/upload/tech/${cand._id}`, { token: candTok, body: { subdomain: ["frontend"], question1: ["draft"] } });
-  expect("own draft ok", r.status === 200, r);
-  r = await call("POST", `/upload/tech/${cand._id}`, { token: candTok, body: { subdomain: ["frontend"], question1: ["final"] } });
-  expect("own submit ok", r.status === 200, r);
-  r = await call("PATCH", `/upload/tech/${cand._id}`, { token: candTok, body: { subdomain: ["frontend"], question1: ["changed"] } });
+  r = await call("PATCH", `/upload/tech/${cand._id}`, { token: candTok, body: { subdomain: ["ml", "bogus"], answers: { "tech-portfolio": "draft", "tech-ml-1": "ml draft", "tech-cp-1": "not picked" } } });
+  expect("own draft ok, unknown subdomain and unpicked answers dropped", r.status === 200 && r.data.data.subdomain.join() === "ml" && !r.data.data.answers["tech-cp-1"] && r.data.data.answers["tech-ml-1"] === "ml draft", r.data);
+  r = await call("POST", `/upload/tech/${cand._id}`, { token: candTok, body: { subdomain: ["ml"], answers: { "tech-portfolio": "final" } } });
+  expect("submit with a missing answer refused", r.status === 400 && r.data.data.errors.some((e) => e.key === "tech-ml-1"), r.data);
+  r = await call("POST", `/upload/tech/${cand._id}`, { token: candTok, body: { subdomain: ["ml"], answers: { "tech-portfolio": "final", "tech-ml-1": "word ".repeat(2001) } } });
+  expect("word limit enforced", r.status === 400, r.status);
+  r = await call("POST", `/upload/tech/${cand._id}`, { token: candTok, body: { subdomain: ["ml"], answers: { "tech-portfolio": "final", "tech-ml-1": "supervised vs unsupervised" } } });
+  expect("own submit ok (ML answer kept, was dropped before)", r.status === 200 && r.data.data.answers["tech-ml-1"], r.data);
+  expect("isTechDone set", (await User.findById(cand._id)).isTechDone === true);
+  r = await call("PATCH", `/upload/tech/${cand._id}`, { token: candTok, body: { subdomain: ["ml"], answers: { "tech-portfolio": "changed" } } });
   expect("edit after submit refused", r.status === 409, r);
+  r = await call("POST", `/upload/design/${cand._id}`, { token: candTok, body: {} });
+  expect("domain not on profile refused", r.status === 403, r.status);
+
+  // status history
+  r = await call("PUT", `/admin/updatestatus/${admin._id}`, { token: adminTok, body: { regno: "25BCE0002", tech: 1, note: "strong repo" } });
+  const ev = await mongoose.model("StatusEvent").find({ user_id: other._id }).lean();
+  expect("status change logged with actor", r.status === 200 && ev.length === 1 && ev[0].from === 0 && ev[0].to === 1 && ev[0].actor === "a@x.in", ev);
+  r = await call("PUT", `/admin/updatestatus/${admin._id}`, { token: adminTok, body: { regno: "25BCE0002", tech: 7 } });
+  expect("invalid round rejected", r.status === 400, r.status);
+  r = await call("GET", "/admin/responses", { token: adminTok });
+  expect("admin list includes submissions", r.data.data.find((u) => u.regno === "25BCE0001").techTasks.length === 1, r.status);
 
   // scheduling
   r = await call("POST", "/api/meet/schedule", { body: { candidateId: String(cand._id), scheduletime: new Date(Date.now() + 864e5) } });
