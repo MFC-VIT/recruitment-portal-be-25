@@ -33,6 +33,8 @@ const rank = (pool, loads, wantedSubdomains) =>
  * on another panel at this time, and free in Google Calendar when we can see it.
  */
 const assignPanel = async ({ userId, domains, subdomains = [], start, end, size, calendar }) => {
+  // The unique index is the lock; make sure it exists before relying on it.
+  await PanelAssignment.init();
   const interviewers = await Interviewer.find({ active: true }).lean();
   if (interviewers.length === 0) return null; // not configured: caller falls back
 

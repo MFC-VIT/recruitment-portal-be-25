@@ -89,6 +89,7 @@ const saveSubmission = async (req, res) => {
       return send(res, 409, null, "This task has already been submitted");
     }
 
+    await Submission.init(); // unique (user, domain) index backs the submit race check
     const user = await UserModel.findById(id).select("isSC");
     const questions = await questionsFor(domain, user);
     const { subdomain, answers, errors } = validateAnswers(questions, req.body || {}, isSubmission);
