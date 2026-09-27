@@ -1,39 +1,21 @@
-const { google } = require("googleapis");
 const MeetDetails = require("../models/meetModel");
 const mongoose = require("mongoose");
 const User = mongoose.models.User || require("../models/userModel");
 const InterviewSlot = require("../models/interviewModel");
+const Submission = require("../models/submissionModel");
 const nodemailer = require("nodemailer");
 const { emailTemplate, ATTACHMENTS } = require("./emailTemplate");
-const path = require("path");
+const { getCalendar } = require("./calendar");
+const { assignPanel, releasePanel } = require("./panel");
+const LEGACY_INTERVIEWERS = require("./legacyInterviewers");
 
 // Number of Bookings Allowed Per Slots
 const MAX_BOOKINGS = 3;
+// Interviewers per panel when the interviewers collection is configured.
+const PANEL_SIZE = Number(process.env.PANEL_SIZE) || 2;
+// Candidates can't book or move into a slot that starts within this window.
+const BOOKING_CUTOFF_MS = 2 * 60 * 60 * 1000;
 
-// Interviewer List , Update Before Deployment, UPDATED hehe
-const INTERVIEWERS = [
-  "adith.manikonda2024@vitstudent.ac.in",
-  "yuvraj.bansal2024@vitstudent.ac.in",
-  "adithyanachiyappan.2024@vitstudent.ac.in",
-  "pranjal.sahay2024@vitstudent.ac.in",
-  "dakshata.abhyankar2024@vitstudent.ac.in",
-  "arshia.ghosh2024@vitstudent.ac.in",
-  // "sarthak.jain2024@vitstudent.ac.in",
-  // "anurag.thakur2024@vitstudent.ac.in",
-  "aadya.agarwal2024b@vitstudent.ac.in",
-  // "ritwin.as2024@vitstudent.ac.in",
-  "traya.jawahar2024@vitstudent.ac.in",
-  "neha.damani2024@vitstudent.ac.in",
-  // "shubham.mishra2024@vitstudent.ac.in",
-  "pooja.goel2023@vitstudent.ac.in",
-  "riyan.johnson2024@vitstudent.ac.in",
-  // "anuraag.chakraborty2024@vitstudent.ac.in",
-  "aayush.keshwani2024@vitstudent.ac.in",
-  // "shreya.yadav2024@vitstudent.ac.in",
-  // "jaanya.bagdi2024@vitstudent.ac.in",
-  "manya.praveensingh2024@vitstudent.ac.in",
-  "rishita.khetan2024@vitstudent.ac.in",
-];
 const transporter = nodemailer.createTransport({
   service: "gmail",
   auth: {
@@ -48,170 +30,180 @@ const releaseSeat = (slotId) =>
     { $inc: { bookedCount: -1 }, $set: { status: "free" } },
   );
 
+// Reserve a seat atomically: the filter and $inc run as one operation, so two
+// candidates racing for the last seat cannot both get it.
+const reserveSeat = async (startTime) => {
+  const slot = await InterviewSlot.findOneAndUpdate(
+    { startTime, bookedCount: { $lt: MAX_BOOKINGS } },
+    { $inc: { bookedCount: 1 } },
+    { new: true },
+  );
+  if (!slot) {
+    const exists = await InterviewSlot.exists({ startTime });
+    return { error: exists ? [409, "This slot is fully booked."] : [404, "No interview slot found for this time."] };
+  }
+  if (slot.bookedCount >= MAX_BOOKINGS) {
+    await InterviewSlot.updateOne({ _id: slot._id }, { status: "full" });
+  }
+  return { slot };
+};
+
+const interviewDomainsOf = (candidate) =>
+  ["tech", "design", "management"].filter(
+    (d) => (candidate.domain || []).includes(d) && candidate[d] === 1,
+  );
+
+const istParts = (start, end) => ({
+  date: start.toLocaleDateString("en-IN", { timeZone: "Asia/Kolkata" }),
+  start: start.toLocaleTimeString("en-IN", { timeZone: "Asia/Kolkata", hour: "2-digit", minute: "2-digit" }),
+  end: end.toLocaleTimeString("en-IN", { timeZone: "Asia/Kolkata", hour: "2-digit", minute: "2-digit" }),
+});
+
+const sendInterviewMail = ({ candidate, panel, start, end, meetLink, subject }) => {
+  const t = istParts(start, end);
+  return transporter.sendMail({
+    from: process.env.MFC_EMAIL,
+    to: [candidate.email, ...panel],
+    subject,
+    text: `${subject}\n\nCandidate: ${candidate.username}\nDate: ${t.date}\nTime: ${t.start} - ${t.end}\nGoogle Meet Link: ${meetLink}`,
+    html: emailTemplate({ candidateName: candidate.username, date: t.date, start: t.start, end: t.end, meetLink }),
+    attachments: ATTACHMENTS,
+  });
+};
+
+// Picks the panel (auto-assigned, or everyone on the legacy list when no
+// interviewers are configured) and creates the Calendar event with a Meet link.
+const createInterview = async ({ calendar, candidate, domains, start, end }) => {
+  const submissions = await Submission.find({ user_id: candidate._id, domain: { $in: domains } })
+    .select("subdomain")
+    .lean();
+  const subdomains = submissions.flatMap((s) => s.subdomain || []);
+
+  const assigned = await assignPanel({
+    userId: candidate._id,
+    domains,
+    subdomains,
+    start,
+    end,
+    size: PANEL_SIZE,
+    calendar,
+  });
+  const panel = assigned ? assigned.emails : LEGACY_INTERVIEWERS;
+
+  try {
+    const response = await calendar.events.insert({
+      calendarId: "primary",
+      conferenceDataVersion: 1,
+      requestBody: {
+        summary: `${candidate.username} - MFC Interview`,
+        description: `Candidate interview for MFC recruitment. Domains: ${domains.join(", ")}`,
+        start: { dateTime: start.toISOString() },
+        end: { dateTime: end.toISOString() },
+        attendees: [{ email: candidate.email }, ...panel.map((email) => ({ email }))],
+        conferenceData: {
+          createRequest: {
+            requestId: `mfc-${candidate._id}-${Date.now()}`,
+            conferenceSolutionKey: { type: "hangoutsMeet" },
+          },
+        },
+      },
+    });
+    return {
+      panel,
+      missingDomains: assigned ? assigned.missingDomains : [],
+      meetLink: response.data.hangoutLink,
+      eventId: response.data.id,
+    };
+  } catch (err) {
+    await releasePanel(candidate._id, start);
+    throw err;
+  }
+};
+
+const deleteEvent = async (calendar, eventId) => {
+  if (!calendar || !eventId) return;
+  try {
+    await calendar.events.delete({ calendarId: "primary", eventId });
+  } catch (googleError) {
+    console.warn("Google Event not found or already deleted:", googleError.message);
+  }
+};
+
+// Shared checks for booking and rescheduling. Returns [status, message] on failure.
+const validateRequest = (candidate, requestedTime) => {
+  if (Number.isNaN(requestedTime.getTime())) return [400, "Invalid scheduletime"];
+  if (Date.now() > requestedTime.getTime() - BOOKING_CUTOFF_MS) {
+    return [400, "Time limit to schedule this slot is over. Book another slot."];
+  }
+  if (!candidate) return [404, "Candidate not found"];
+  if (interviewDomainsOf(candidate).length === 0) {
+    return [403, "You have not been shortlisted for an interview yet."];
+  }
+  return null;
+};
+
 const scheduleMeeting = async (req, res) => {
-  let reservedSlotId = null;
+  let slot = null;
   let booked = false;
   try {
     // The candidate is always the logged-in user; any candidateId in the body is ignored.
-    const candidateId = req.userId;
-    const { domains, scheduletime } = req.body;
-
-    if (!scheduletime) {
-      return res.status(400).json({
-        error: "Missing required field: scheduletime",
-      });
+    const candidate = await User.findById(req.userId);
+    const requestedTime = new Date(req.body.scheduletime);
+    if (!req.body.scheduletime) {
+      return res.status(400).json({ error: "Missing required field: scheduletime" });
     }
+    const invalid = validateRequest(candidate, requestedTime);
+    if (invalid) return res.status(invalid[0]).json({ error: invalid[1] });
 
-    // Convert string to Date object for accurate comparison
-    const requestedTime = new Date(scheduletime);
-    const currentTime = new Date();
-    const limitTime = 2 * 60 * 60 * 1000;
-    const bookingDeadline = new Date(requestedTime.getTime() - limitTime);
-    if (currentTime > bookingDeadline) {
-      return res.status(400).json({error: "Time limit to schedule this slot is over. Book another slot." });}
-
-    // Check for Existing Slot for the Same Candidate
-    const existingBooking = await MeetDetails.findOne({
-      user_id: candidateId,
-    });
-
-    if (existingBooking) {
+    if (await MeetDetails.exists({ user_id: candidate._id })) {
       return res.status(400).json({ error: "You have already booked a slot" });
     }
 
-    const candidate = await User.findById(candidateId);
-    if (!candidate)
-      return res.status(404).json({ error: "Candidate not found" });
-
-    // Only candidates moved to the interview round (status 1) in a domain they applied to may book.
-    const interviewDomains = ["tech", "design", "management"].filter(
-      (d) => (candidate.domain || []).includes(d) && candidate[d] === 1,
-    );
-    if (interviewDomains.length === 0) {
-      return res
-        .status(403)
-        .json({ error: "You have not been shortlisted for an interview yet." });
+    const calendar = await getCalendar();
+    if (!calendar) {
+      return res.status(400).json({ error: "Admin must connect Google Calendar first." });
     }
 
-    // Reserve a seat atomically: the filter and $inc run as one operation, so two
-    // candidates racing for the last seat cannot both get it.
-    const slotDoc = await InterviewSlot.findOneAndUpdate(
-      { startTime: requestedTime, bookedCount: { $lt: MAX_BOOKINGS } },
-      { $inc: { bookedCount: 1 } },
-      { new: true },
-    );
+    const reserved = await reserveSeat(requestedTime);
+    if (reserved.error) return res.status(reserved.error[0]).json({ error: reserved.error[1] });
+    slot = reserved.slot;
 
-    if (!slotDoc) {
-      const exists = await InterviewSlot.exists({ startTime: requestedTime });
-      return exists
-        ? res.status(409).json({ error: "This slot is fully booked." })
-        : res.status(404).json({ error: "No interview slot found for this time." });
-    }
-    if (slotDoc.bookedCount >= MAX_BOOKINGS) {
-      await InterviewSlot.updateOne({ _id: slotDoc._id }, { status: "full" });
-    }
-    reservedSlotId = slotDoc._id;
-
-    const adminUser = await User.findOne({
-      admin: true,
-      googleRefreshToken: { $ne: null },
-    });
-    if (!adminUser || !adminUser.googleRefreshToken) {
-      await releaseSeat(reservedSlotId);
-      return res
-        .status(400)
-        .json({ error: "Admin must connect Google Calendar first." });
-    }
-
-    const oauth = new google.auth.OAuth2(
-      process.env.GOOGLE_CLIENT_ID,
-      process.env.GOOGLE_CLIENT_SECRET,
-      process.env.GOOGLE_REDIRECT_URI,
-    );
-    oauth.setCredentials({ refresh_token: adminUser.googleRefreshToken });
-    const calendar = google.calendar({ version: "v3", auth: oauth });
-    const startDate = new Date(slotDoc.startTime);
-    const endDate = new Date(slotDoc.endTime);
-
-    const event = {
-      summary: `${candidate.username} - MFC Interview`,
-      description: `Candidate interview for MFC recruitment. Domains: ${domains}`,
-      start: { dateTime: startDate.toISOString() },
-      end: { dateTime: endDate.toISOString() },
-      attendees: [
-        { email: candidate.email },
-        ...INTERVIEWERS.map((email) => ({ email })),
-      ],
-      conferenceData: {
-        createRequest: {
-          requestId: "mfc-" + Date.now(),
-          conferenceSolutionKey: { type: "hangoutsMeet" },
-        },
-      },
-    };
-
-    const response = await calendar.events.insert({
-      calendarId: "primary",
-      requestBody: event,
-      conferenceDataVersion: 1,
-    });
-
-    const meetLink = response.data.hangoutLink;
-    const eventId = response.data.id;
+    const domains = interviewDomainsOf(candidate);
+    const start = new Date(slot.startTime);
+    const end = new Date(slot.endTime);
+    const interview = await createInterview({ calendar, candidate, domains, start, end });
 
     const entry = await MeetDetails.create({
-      user_id: candidateId,
-      intervieweremail: INTERVIEWERS,
-      scheduledTime: startDate,
-      endTime: endDate,
-      gmeetLink: meetLink,
-      googleEventId: eventId,
+      user_id: candidate._id,
+      intervieweremail: interview.panel,
+      domains,
+      panelIncomplete: interview.missingDomains.length > 0,
+      scheduledTime: start,
+      endTime: end,
+      gmeetLink: interview.meetLink,
+      googleEventId: interview.eventId,
     });
     booked = true;
 
-    // Send Email
-    const formattedDate = startDate.toLocaleDateString("en-IN", {
-      timeZone: "Asia/Kolkata",
-    });
-    const startTimeStr = startDate.toLocaleTimeString("en-IN", {
-      timeZone: "Asia/Kolkata",
-      hour: "2-digit",
-      minute: "2-digit",
-    });
-    const endTimeStr = endDate.toLocaleTimeString("en-IN", {
-      timeZone: "Asia/Kolkata",
-      hour: "2-digit",
-      minute: "2-digit",
-    });
-
-    const html = emailTemplate({
-      candidateName: candidate.username,
-      date: formattedDate,
-      start: startTimeStr,
-      end: endTimeStr,
-      meetLink,
-    });
-
-    await transporter.sendMail({
-      from: process.env.MFC_EMAIL,
-      to: [candidate.email, ...INTERVIEWERS],
+    await sendInterviewMail({
+      candidate,
+      panel: interview.panel,
+      start,
+      end,
+      meetLink: interview.meetLink,
       subject: "MFC Interview Scheduled",
-      text: `MFC Interview Confirmation\n\nCandidate: ${candidate.username}\nDate: ${formattedDate}\nTime: ${startTimeStr} - ${endTimeStr}\nGoogle Meet Link: ${meetLink}`,
-      html,
-      attachments: ATTACHMENTS,
-    });
+    }).catch((err) => console.error("Interview mail failed:", err.message));
 
-    // Include the generated Google Meet link explicitly so frontend sees it immediately
     return res.json({
       success: true,
       message: "Interview scheduled!",
       data: entry,
-      gmeetLink: meetLink,
-      meetingStartTime: startDate,
+      gmeetLink: interview.meetLink,
+      meetingStartTime: start,
     });
   } catch (err) {
     console.error("Error scheduling meeting:", err);
-    if (reservedSlotId && !booked) await releaseSeat(reservedSlotId).catch(() => {});
+    if (slot && !booked) await releaseSeat(slot._id).catch(() => {});
     if (res.headersSent) return;
     return res.status(500).json({ error: "Failed to schedule meeting" });
   }
@@ -219,48 +211,16 @@ const scheduleMeeting = async (req, res) => {
 
 const cancelMeeting = async (req, res) => {
   try {
-    const candidateId = req.userId;
-
-    const booking = await MeetDetails.findOne({ user_id: candidateId });
+    const booking = await MeetDetails.findOne({ user_id: req.userId });
     if (!booking) {
-      return res
-        .status(404)
-        .json({ error: "No booking found for this candidate" });
+      return res.status(404).json({ error: "No booking found for this candidate" });
     }
 
-    const adminUser = await User.findOne({
-      admin: true,
-      googleRefreshToken: { $ne: null },
-    });
-    if (!adminUser || !adminUser.googleRefreshToken) {
-      return res.status(400).json({ error: "Admin Google Token missing" });
-    }
+    await deleteEvent(await getCalendar(), booking.googleEventId);
 
-    const oauth = new google.auth.OAuth2(
-      process.env.GOOGLE_CLIENT_ID,
-      process.env.GOOGLE_CLIENT_SECRET,
-      process.env.GOOGLE_REDIRECT_URI,
-    );
-    oauth.setCredentials({ refresh_token: adminUser.googleRefreshToken });
-    const calendar = google.calendar({ version: "v3", auth: oauth });
-
-    try {
-      await calendar.events.delete({
-        calendarId: "primary",
-        eventId: booking.googleEventId,
-      });
-    } catch (googleError) {
-      console.warn(
-        "Google Event not found or already deleted:",
-        googleError.message,
-      );
-    }
-
-    const slotDoc = await InterviewSlot.findOne({
-      startTime: booking.scheduledTime,
-    }).select("_id");
-    if (slotDoc) await releaseSeat(slotDoc._id);
-
+    const slot = await InterviewSlot.findOne({ startTime: booking.scheduledTime }).select("_id");
+    if (slot) await releaseSeat(slot._id);
+    await releasePanel(booking.user_id, booking.scheduledTime);
     await MeetDetails.deleteOne({ _id: booking._id });
 
     return res.json({
@@ -273,4 +233,98 @@ const cancelMeeting = async (req, res) => {
   }
 };
 
-module.exports = { scheduleMeeting, cancelMeeting };
+// Moves an existing booking to a new slot. The new seat, panel and event are
+// secured first; the old ones are only released once that has succeeded, so a
+// failed reschedule leaves the original booking intact.
+const rescheduleMeeting = async (req, res) => {
+  let slot = null;
+  let moved = false;
+  try {
+    const candidate = await User.findById(req.userId);
+    const booking = await MeetDetails.findOne({ user_id: req.userId });
+    if (!booking) return res.status(404).json({ error: "No booking to reschedule" });
+
+    const requestedTime = new Date(req.body.scheduletime);
+    const invalid = validateRequest(candidate, requestedTime);
+    if (invalid) return res.status(invalid[0]).json({ error: invalid[1] });
+    if (requestedTime.getTime() === new Date(booking.scheduledTime).getTime()) {
+      return res.status(400).json({ error: "That is already your slot." });
+    }
+    if (Date.now() > new Date(booking.scheduledTime).getTime() - BOOKING_CUTOFF_MS) {
+      return res.status(400).json({ error: "Your interview is too close to reschedule. Contact the team." });
+    }
+
+    const calendar = await getCalendar();
+    if (!calendar) return res.status(400).json({ error: "Admin must connect Google Calendar first." });
+
+    const reserved = await reserveSeat(requestedTime);
+    if (reserved.error) return res.status(reserved.error[0]).json({ error: reserved.error[1] });
+    slot = reserved.slot;
+
+    const domains = interviewDomainsOf(candidate);
+    const start = new Date(slot.startTime);
+    const end = new Date(slot.endTime);
+    const interview = await createInterview({ calendar, candidate, domains, start, end });
+
+    const oldStart = booking.scheduledTime;
+    const oldEventId = booking.googleEventId;
+    Object.assign(booking, {
+      intervieweremail: interview.panel,
+      domains,
+      panelIncomplete: interview.missingDomains.length > 0,
+      scheduledTime: start,
+      endTime: end,
+      gmeetLink: interview.meetLink,
+      googleEventId: interview.eventId,
+      status: "scheduled",
+      reminderSentAt: null,
+      rescheduleCount: (booking.rescheduleCount || 0) + 1,
+    });
+    await booking.save();
+    moved = true;
+
+    await deleteEvent(calendar, oldEventId);
+    const oldSlot = await InterviewSlot.findOne({ startTime: oldStart }).select("_id");
+    if (oldSlot) await releaseSeat(oldSlot._id);
+    await releasePanel(candidate._id, oldStart);
+
+    await sendInterviewMail({
+      candidate,
+      panel: interview.panel,
+      start,
+      end,
+      meetLink: interview.meetLink,
+      subject: "MFC Interview Rescheduled",
+    }).catch((err) => console.error("Reschedule mail failed:", err.message));
+
+    return res.json({
+      success: true,
+      message: "Interview rescheduled!",
+      data: booking,
+      gmeetLink: interview.meetLink,
+      meetingStartTime: start,
+    });
+  } catch (err) {
+    console.error("Error rescheduling meeting:", err);
+    if (slot && !moved) await releaseSeat(slot._id).catch(() => {});
+    if (res.headersSent) return;
+    return res.status(500).json({ error: "Failed to reschedule meeting" });
+  }
+};
+
+// Candidate's own booking, for the tracker and the meeting page.
+const myMeeting = async (req, res) => {
+  const booking = await MeetDetails.findOne({ user_id: req.userId })
+    .select("scheduledTime endTime gmeetLink status domains rescheduleCount")
+    .lean();
+  return res.json({ success: true, data: booking });
+};
+
+module.exports = {
+  scheduleMeeting,
+  cancelMeeting,
+  rescheduleMeeting,
+  myMeeting,
+  sendInterviewMail,
+  MAX_BOOKINGS,
+};
