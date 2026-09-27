@@ -1,529 +1,174 @@
 const UserModel = require("../models/userModel");
 const Response = require("../utils/responseModel");
-const mongoose = require("mongoose")
-const TechTaskModel = require("../models/techTaskModel");
-const DesignTaskModel = require("../models/designTaskModel");
-const ManagementTaskModel = require("../models/managementModel")
+const mongoose = require("mongoose");
+const StatusEvent = require("../models/statusEventModel");
 
-const getUserByRegNo = async (req,res) => {
-  const {regNo} = req.body;
+const DOMAINS = ["tech", "design", "management"];
 
-  if(!regNo) {
-    const response = new Response(
-      400,
-      null,
-      "regNo missing",
-      false
-    );
-    return res.status(response.statusCode).json(response);
-  }
+const escapeRegex = (s) => String(s).replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 
-  console.log(regNo)
-
-  const user = await UserModel.findOne({regno: regNo});
-
-  if (!user) {
-    const response = new Response (
-      400,
-      null,
-      "user with registartion number not found",
-      false
-    );
-    return res.status(response.statusCode).json(response);
-  }
-
-  console.log(user.id)
-
-  const userData = await UserModel.aggregate([
-      {
-        $match: { _id: new mongoose.Types.ObjectId(user.id) },
-      },
-      {
-        $lookup: {
-          from: "techtasks",
-          let: { userId: "$_id" },
-          pipeline: [
-            { $match: { $expr: { $eq: ["$user_id", "$$userId"] } } },
-            { $sort: { createdAt: -1 } },
-            { $limit: 1 } 
-          ],
-          as: "techTasks",
-        },
-      },
-      { $unwind: { path: "$techtasks", preserveNullAndEmptyArrays: true } },
-    
-      {
-        $lookup: {
-          from: "designtasks",
-          let: { userId: "$_id" },
-          pipeline: [
-            { $match: { $expr: { $eq: ["$user_id", "$$userId"] } } },
-            { $sort: { createdAt: -1 } },
-            { $limit: 1 }
-          ],
-          as: "designTasks",
-        },
-      },
-      { $unwind: { path: "$designtasks", preserveNullAndEmptyArrays: true } },
-    
-      {
-        $lookup: {
-          from: "managementtasks",
-          let: { userId: "$_id" },
-          pipeline: [
-            { $match: { $expr: { $eq: ["$user_id", "$$userId"] } } },
-            { $sort: { createdAt: -1 } },
-            { $limit: 1 }
-          ],
-          as: "managementTasks",
-        },
-      },
-      { $unwind: { path: "$managementtasks", preserveNullAndEmptyArrays: true } },
-    ]);
-    
-
-  console.log(user)
-
-  const response = new Response(
-    200,
-    userData,
-    "User Response fetched Successfully",
-    true
-  )
-
+const send = (res, statusCode, data, message) => {
+  const response = new Response(statusCode, data, message, statusCode < 400);
   return res.status(response.statusCode).json(response);
+};
 
-}
+// Users joined with their submissions, grouped the way the old
+// techTasks/designTasks/managementTasks arrays were so existing clients keep working.
+const usersWithSubmissions = ({ match, subdomain, skip, limit }) => {
+  const byDomain = (domain) => ({
+    $filter: {
+      input: "$submissions",
+      cond: {
+        $and: [
+          { $eq: ["$$this.domain", domain] },
+          subdomain ? { $in: [subdomain, "$$this.subdomain"] } : true,
+        ],
+      },
+    },
+  });
+  return UserModel.aggregate([
+    { $match: match },
+    { $sort: { createdAt: -1 } },
+    { $skip: skip },
+    { $limit: limit },
+    {
+      $lookup: {
+        from: "submissions",
+        localField: "_id",
+        foreignField: "user_id",
+        as: "submissions",
+      },
+    },
+    {
+      $project: {
+        username: 1,
+        email: 1,
+        regno: 1,
+        verified: 1,
+        mobile: 1,
+        emailpersonal: 1,
+        domain: 1,
+        volunteeredEvent: 1,
+        participatedEvent: 1,
+        tech: 1,
+        design: 1,
+        management: 1,
+        isProfileDone: 1,
+        isJC: 1,
+        isSC: 1,
+        createdAt: 1,
+        techTasks: byDomain("tech"),
+        designTasks: byDomain("design"),
+        managementTasks: byDomain("management"),
+      },
+    },
+  ]);
+};
 
-const getAllUser = async (req, res) => {
+const listUsers = (forcedDomain) => async (req, res) => {
   try {
-    const page = parseInt(req.query.page) - 1 || 0;
-    const limit = parseInt(req.query.limit) || 10000000;
-    const skip = page * limit;
+    const page = Math.max(parseInt(req.query.page) - 1 || 0, 0);
+    const limit = Math.min(parseInt(req.query.limit) || 10000, 10000);
+    const { subdomain } = req.query;
+    const regno = req.body && req.body.regno;
 
-    const { domain, subdomain } = req.query;
-    const { regno } = req.body;
+    const match = {};
+    const domains = forcedDomain
+      ? [forcedDomain]
+      : req.query.domain
+      ? String(req.query.domain).split(",")
+      : null;
+    if (domains) match.domain = { $in: domains };
+    if (regno) match.regno = { $regex: new RegExp(escapeRegex(regno), "i") };
 
-    let filter = {};
-
-    if (domain) {
-      filter.domain = { $in: domain.split(",") };
-    }
-
-    if (regno) {
-      const escaped = String(regno).replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-      filter.regno = { $regex: new RegExp(escaped, "i") };
-    }
-
-    // if (name) {
-    //   filter.username = { $regex: new RegExp(name, "i") };
-    // }
-
-    const users = await UserModel.aggregate([
-      {
-        $match: filter,
-      },
-      {
-        $lookup: {
-          from: "techtasks",
-          localField: "_id",
-          foreignField: "user_id",
-          as: "techTasks",
-        },
-      },
-      {
-        $lookup: {
-          from: "designtasks",
-          localField: "_id",
-          foreignField: "user_id",
-          as: "designTasks",
-        },
-      },
-      {
-        $lookup: {
-          from: "managementtasks",
-          localField: "_id",
-          foreignField: "user_id",
-          as: "managementTasks",
-        },
-      },
-      {
-        $project: {
-          username: 1,
-          email: 1,
-          regno: 1,
-          verified: 1,
-          mobile: 1,
-          emailpersonal: 1,
-          domain: 1,
-          volunteered: 1,
-          volunteeredEvent: 1,
-          participated: 1,
-          participatedEvent: 1,
-          tech: 1,
-          design: 1,
-          management: 1,
-          isProfileDone: 1,
-          techTasks: {
-            $filter: {
-              input: "$techTasks",
-              as: "task",
-              cond: {
-                $in: [subdomain, "$$task.subdomain"],
-              },
-            },
-          },
-          designTasks: {
-            $filter: {
-              input: "$designTasks",
-              as: "task",
-              cond: {
-                $in: [subdomain, "$$task.subdomain"],
-              },
-            },
-          },
-          managementTasks: {
-            $filter: {
-              input: "$managementTasks",
-              as: "task",
-              cond: {
-                $in: [subdomain, "$$task.subdomain"],
-              },
-            },
-          },
-          isDoneTech: "$techTasks",
-          isDoneDesign: "$designTasks",
-          isDoneManagement: "$managementTasks",
-        },
-      },
-      { $skip: skip },
-      { $limit: limit },
-    ]);
-    const response = new Response (
-      200,
-      users,
-      "Users Fetched Successfully",
-      true,
-    )
-    res.status(response.statusCode).json(response)
+    const users = await usersWithSubmissions({
+      match,
+      subdomain,
+      skip: page * limit,
+      limit,
+    });
+    return send(res, 200, users, "Users Fetched Successfully");
   } catch (error) {
     console.error(error);
-    const response = new Response(
-      500,
-      null,
-      "Internal Server Error",
-      false
-    );
-    res.status(response.statusCode).json(response)
+    return send(res, 500, null, "Internal Server Error");
   }
 };
 
-const getAllUserTech = async (req, res) => {
+const getAllUser = listUsers(null);
+const getAllUserTech = listUsers("tech");
+const getAllUserDesign = listUsers("design");
+const getAllUserManagement = listUsers("management");
+
+const getUserByRegNo = async (req, res) => {
+  const { regNo } = req.body || {};
+  if (!regNo) return send(res, 400, null, "regNo missing");
   try {
-    const page = parseInt(req.query.page) - 1 || 0;
-    const limit = parseInt(req.query.limit) || 10000000;
-    const skip = page * limit;
-
-    const { domain, subdomain } = req.query;
-    const { regno } = req.body;
-
-    let filter = {};
-
-    if (domain) {
-      filter.domain = { $in: domain.split(",") };
-    }
-
-    if (regno) {
-      const escaped = String(regno).replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-      filter.regno = { $regex: new RegExp(escaped, "i") };
-    }
-
-
-    const users = await UserModel.aggregate([
-      // {
-      //   $match: filter,
-      // },
-      {
-        $lookup: {
-          from: "techtasks",
-          localField: "_id",
-          foreignField: "user_id",
-          as: "techTasks",
-        },
-      },
-      {
-        $project: {
-          username: 1,
-          email: 1,
-          regno: 1,
-          mobile: 1,
-          emailpersonal: 1,
-          domain: 1,
-          volunteeredEvent: 1,
-          participatedEvent: 1,
-          techTasks: 1,
-          isDoneTech: {
-            $in: [true, "$techTasks.isDone"],
-          },
-        },
-      },
-      {
-        $match: {
-          isDoneTech: true,
-        },
-      },
-      { $skip: skip },
-      { $limit: limit },
-    ]);
-
-    const response = new Response (
-      200,
-      users,
-      "Users Fetched Successfully",
-      true,
-    )
-    res.status(response.statusCode).json(response)
+    const user = await UserModel.findOne({ regno: regNo }).select("_id");
+    if (!user) return send(res, 404, null, "user with registration number not found");
+    const userData = await usersWithSubmissions({
+      match: { _id: new mongoose.Types.ObjectId(user._id) },
+      skip: 0,
+      limit: 1,
+    });
+    return send(res, 200, userData, "User Response fetched Successfully");
   } catch (error) {
     console.error(error);
-    const response = new Response(
-      500,
-      null,
-      "Internal Server Error",
-      false
-    );
-    res.status(response.statusCode).json(response)
+    return send(res, 500, null, "Internal Server Error");
   }
 };
 
-const getAllUserDesign = async (req, res) => {
-  try {
-    const page = parseInt(req.query.page) - 1 || 0;
-    const limit = parseInt(req.query.limit) || 10000000;
-    const skip = page * limit;
-
-    const { domain, subdomain } = req.query;
-    const { regno } = req.body;
-
-    let filter = {};
-
-    if (domain) {
-      filter.domain = { $in: domain.split(",") };
-    }
-
-    if (regno) {
-      const escaped = String(regno).replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-      filter.regno = { $regex: new RegExp(escaped, "i") };
-    }
-
-
-    const users = await UserModel.aggregate([
-      // {
-      //   $match: filter,
-      // },
-      {
-        $lookup: {
-          from: "designtasks",
-          localField: "_id",
-          foreignField: "user_id",
-          as: "designTasks",
-        },
-      },
-      {
-        $project: {
-          username: 1,
-          email: 1,
-          regno: 1,
-          mobile: 1,
-          emailpersonal: 1,
-          domain: 1,
-          volunteeredEvent: 1,
-          participatedEvent: 1,
-          designTasks: 1,
-          isDoneDesign: {
-            $in: [true, "$designTasks.isDone"],
-          },
-        },
-      },
-      {
-        $match: {
-          isDoneDesign: true,
-        },
-      },
-      { $skip: skip },
-      { $limit: limit },
-    ]);
-
-    const response = new Response (
-      200,
-      users,
-      "Users Fetched Successfully",
-      true,
-    )
-    res.status(response.statusCode).json(response)
-  } catch (error) {
-    console.error(error);
-    const response = new Response(
-      500,
-      null,
-      "Internal Server Error",
-      false
-    );
-    res.status(response.statusCode).json(response)
-  }
-};
-
-const getAllUserManagement = async (req, res) => {
-  try {
-    const page = parseInt(req.query.page) - 1 || 0;
-    const limit = parseInt(req.query.limit) || 10000000;
-    const skip = page * limit;
-
-    const { domain, subdomain } = req.query;
-    const { regno } = req.body;
-
-    let filter = {};
-
-    if (domain) {
-      filter.domain = { $in: domain.split(",") };
-    }
-
-    if (regno) {
-      const escaped = String(regno).replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-      filter.regno = { $regex: new RegExp(escaped, "i") };
-    }
-
-
-    const users = await UserModel.aggregate([
-      // {
-      //   $match: filter,
-      // },
-      {
-        $lookup: {
-          from: "managementtasks",
-          localField: "_id",
-          foreignField: "user_id",
-          as: "managementTasks",
-        },
-      },
-      {
-        $project: {
-          username: 1,
-          email: 1,
-          regno: 1,
-          mobile: 1,
-          emailpersonal: 1,
-          domain: 1,
-          volunteeredEvent: 1,
-          participatedEvent: 1,
-          managementTasks: 1,
-          isDoneManagement: {
-            $in: [true, "$managementTasks.isDone"],
-          },
-        },
-      },
-      {
-        $match: {
-          isDoneManagement: true,
-        },
-      },
-      { $skip: skip },
-      { $limit: limit },
-    ]);
-
-    const response = new Response (
-      200,
-      users,
-      "Users Fetched Successfully",
-      true,
-    )
-    res.status(response.statusCode).json(response)
-  } catch (error) {
-    console.error(error);
-    const response = new Response(
-      500,
-      null,
-      "Internal Server Error",
-      false
-    );
-    res.status(response.statusCode).json(response)
-  }
-};
-
+// Sets a candidate's round per domain and records each change in StatusEvent.
 const updateUserStatus = async (req, res) => {
-  const { regno, tech, design, management } = req.body;
-  const successMessages = [];
-  const errorMessages = [];
+  const { regno, note } = req.body || {};
+  if (!regno) return send(res, 400, null, "Regno is required");
 
   try {
-    if (!regno) {
-      return res.status(400).json({ message: "Regno is required" });
+    const user = await UserModel.findOne({ regno });
+    if (!user) return send(res, 404, null, `User with regno ${regno} not found`);
+
+    const actor = await UserModel.findById(req.userId).select("email");
+    const events = [];
+    for (const domain of DOMAINS) {
+      const next = req.body[domain];
+      if (next === undefined) continue;
+      if (![-1, 0, 1, 2].includes(Number(next))) {
+        return send(res, 400, null, `${domain} must be -1, 0, 1 or 2`);
+      }
+      if (user[domain] === Number(next)) continue;
+      events.push({
+        user_id: user._id,
+        domain,
+        from: user[domain] || 0,
+        to: Number(next),
+        actor: actor ? actor.email : "admin",
+        note: note || "",
+      });
+      user[domain] = Number(next);
     }
 
-    // for (const reg of regno) {
-      const user = await UserModel.findOne({ regno: regno });
-      if (!user) {
-        return res
-          .status(404)
-          .json({ message: `User with regno ${regno} not found` });
-      }
-
-      if (tech !== undefined) {
-        user.tech = tech;
-      }
-      if (design !== undefined) {
-        user.design = design;
-      }
-      if (management !== undefined) {
-        user.management = management;
-      }
-
-      await user.save();
-      successMessages.push(`User with regno ${regno} updated successfully`);
-    // }
-
-    // const response = {
-    //   successMessages: successMessages,
-    //   errorMessages: errorMessages,
-    // };
-
-    const response = new Response (
-      200,
-      null,
-      successMessages,
-      true
-    );
-
-    res.status(response.statusCode).json(response);
+    await user.save();
+    if (events.length) await StatusEvent.insertMany(events);
+    return send(res, 200, { changes: events.length }, `User with regno ${regno} updated successfully`);
   } catch (error) {
     console.error("Error updating user status:", error);
-    const response = new Response (
-      500,
-      null,
-      "Error Updating Messages",
-      false
-    )
-    res.status(response.statusCode).json(response)
+    return send(res, 500, null, "Error updating status");
   }
 };
 
+// Grants admin to an existing account. The route is already admin-only.
 const makeAdmin = async (req, res) => {
-  const { email, secretcode, secretcode2 } = req.body;
+  const { email } = req.body || {};
+  if (!email) return send(res, 400, null, "email is required");
   try {
-    if (
-      secretcode === process.env.ACCESS_TOKEN_SECERT &&
-      secretcode2 === process.env.PORT
-    ) {
-      const user = await UserModel.findByOneAndUpdate(
-        { email },
-        {
-          admin: true,
-        },
-        { new: true }
-      );
-      res.status(200).json(user);
-    }
+    const user = await UserModel.findOneAndUpdate(
+      { email: String(email).toLowerCase() },
+      { admin: true },
+      { new: true }
+    ).select("username email admin");
+    if (!user) return send(res, 404, null, "User not found");
+    return send(res, 200, user, "User is now an admin");
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    return send(res, 500, null, error.message);
   }
 };
 
