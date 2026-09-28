@@ -1,7 +1,12 @@
 // Pure mapping from a legacy per-domain task document to a submission.
 // Kept separate from the script so it can be tested without a database.
 
-const normaliseSubdomains = (raw) => {
+const squash = (s) => s.replace(/[^a-z0-9]/g, "");
+
+// `known` (optional) maps spelling variants onto real subdomain values, e.g.
+// "general operations" -> "generaloperations", "ui ux" -> "ui/ux".
+const normaliseSubdomains = (raw, known = []) => {
+  const canonical = new Map(known.map((k) => [squash(k), k]));
   const list = Array.isArray(raw) ? raw : raw ? [raw] : [];
   return [
     ...new Set(
@@ -11,6 +16,7 @@ const normaliseSubdomains = (raw) => {
         .filter(Boolean)
         // The admin portal briefly renamed "events" to "editorial".
         .map((s) => (s === "editorial" ? "events" : s))
+        .map((s) => canonical.get(squash(s)) || s)
     ),
   ];
 };
@@ -48,7 +54,8 @@ const legacyToSubmission = (doc, domain, questions, user) => {
     answers[q.key] = text;
   }
 
-  let subdomain = normaliseSubdomains(doc.subdomain);
+  const known = [...new Set(questions.filter((q) => q.domain === domain && q.subdomain).map((q) => q.subdomain))];
+  let subdomain = normaliseSubdomains(doc.subdomain, known);
   if (subdomain.length === 0) {
     // Infer from which subdomain-specific questions were answered.
     const keys = new Set(Object.keys(answers));
