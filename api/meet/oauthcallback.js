@@ -1,4 +1,5 @@
 const { google } = require("googleapis");
+const jwt = require("jsonwebtoken");
 const User = require("../models/userModel");
 
 const oauthCallback = async (req, res) => {
@@ -9,12 +10,22 @@ const oauthCallback = async (req, res) => {
       process.env.GOOGLE_REDIRECT_URI
     );
 
-    const { code } = req.query;
+    const { code, state } = req.query;
+
+    let adminId;
+    try {
+      const decoded = jwt.verify(
+        String(state || ""),
+        `${process.env.ACCESS_TOKEN_SECERT}:google-oauth`,
+      );
+      if (decoded.purpose !== "google-oauth") throw new Error("bad state");
+      adminId = decoded.id;
+    } catch (e) {
+      return res.status(403).send("Invalid or expired OAuth state. Start again from /api/meet/auth.");
+    }
 
     // --- Get tokens ---
     const { tokens } = await oauth.getToken(code);
-
-    console.log("GOOGLE TOKENS RECEIVED:", tokens);
 
     if (!tokens.refresh_token) {
       return res.send(
@@ -23,7 +34,7 @@ const oauthCallback = async (req, res) => {
     }
 
     // --- Get admin user ---
-    const adminUser = await User.findOne({ admin: true });
+    const adminUser = await User.findOne({ _id: adminId, admin: true });
 
     if (!adminUser) {
       return res.status(400).send("No admin user found.");
@@ -32,8 +43,6 @@ const oauthCallback = async (req, res) => {
     // --- Save refresh token ---
     adminUser.googleRefreshToken = tokens.refresh_token;
     await adminUser.save();
-
-    console.log("ADMIN UPDATED: ", adminUser);
 
     res.send("Google Calendar connected successfully. You can close this tab.");
   } catch (err) {

@@ -8,6 +8,7 @@ const taskRoute = require("./api/routes/taskRoute");
 const adminRoute = require("./api/routes/adminRoute");
 const statusRoute = require("./api/routes/statusRoute");
 const meetRoute = require("./api/routes/meetRoute");
+const questionRoute = require("./api/routes/questionRoute");
 const connectDb = require("./api/db/dbConnection");
 
 connectDb();
@@ -15,7 +16,9 @@ connectDb();
 const app = express();
 const port = process.env.PORT || 5000;
 
-app.use(express.json());
+// Azure App Service sits behind a proxy; without this every request shares one IP.
+app.set("trust proxy", 1);
+app.use(express.json({ limit: "1mb" }));
 app.use(cors());
 
 // Health Check
@@ -31,58 +34,7 @@ app.use("/upload", taskRoute);
 app.use("/admin", adminRoute);
 app.use("/applicatiostatus", statusRoute);
 app.use("/api/meet", meetRoute);
-// Backwards-compatible endpoints used by the frontend (some FE code calls these root paths)
-// Keep these mounted in addition to /api/meet so we don't need to change the frontend.
-const { scheduleMeeting, cancelMeeting } = require("./api/meet/schedule");
-app.post("/schedule", scheduleMeeting);
-app.post("/cancel", cancelMeeting);
-// Google Meet OAuth Routes
-
-// TEMP ADMIN ROUTE (correct and only one)
-app.get("/temp-make-admin", async (req, res) => {
-  try {
-    const User = require("./api/models/userModel");
-
-    const updated = await User.findOneAndUpdate(
-      { email: "adith.manikonda2024@vitstudent.ac.in" },
-      { admin: true },
-      { new: true }
-    );
-
-    if (!updated) {
-      return res.status(404).json({ message: "Admin user not found" });
-    }
-
-    res.json({
-      message: "Admin user updated successfully",
-      user: updated,
-    });
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-});
-
-app.get("/debug-admin", async (req, res) => {
-  const User = require("./api/models/userModel");
-  const admin = await User.findOne({ admin: true });
-  res.json(admin);
-});
-
-app.get("/force-save-refresh-token", async (req, res) => {
-  const User = require("./api/models/userModel");
-
-  const updated = await User.findByIdAndUpdate(
-    "693556536ea5209966d1507c",
-    {
-      googleRefreshToken:
-        "1//0g8bk1SkauiIJCgYIARAAGBASNwF-L9IrOp4V-IY5ZlWiQ9d3b2zTqaBWWMeYQeCSh4BR9b8RxaUydq0JfnuUQsy64frJiwUw2O8",
-    },
-    { new: true }
-  );
-
-  res.json(updated);
-});
-
+app.use("/questions", questionRoute);
 app.listen(port, () => {
   console.log(`Server running on port ${port}`);
 });

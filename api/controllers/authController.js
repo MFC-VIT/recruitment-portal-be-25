@@ -2,46 +2,24 @@ const UserModel = require("../models/userModel");
 const VerificationModel = require("../models/verificationModel");
 const sendVerificationMail = require("../utils/sendverification");
 const sendPasswordResetMail = require("../utils/sendverificationPassword");
-const allowedEmailsData = require("../../allowedEmails.json");
 
-const jwt = require("jsonwebtoken");
 const bcrypt = require("bcrypt");
 const crypto = require("crypto");
-const nodemailer = require("nodemailer");
-const { v4: uuidv4 } = require("uuid");
 const MeetDetails = require("../models/meetModel");
 const Response = require("../utils/responseModel");
 
 require("dotenv").config();
 
-const buildTokenClaims = (user) => ({
-  id: user._id,
-  username: user.username,
-  email: user.email,
-  regno: user.regno,
-  verified: user.verified,
-  tech: user.tech,
-  design: user.design,
-  management: user.management,
-  admin: user.admin,
-  isProfileDone: user.isProfileDone,
-  isTechDone: user.isTechDone,
-  isManagementDone: user.isManagementDone,
-  isDesignDone: user.isDesignDone,
-  domain: user.domain,
-  isJC: user.isJC,
-  isSC: user.isSC,
-});
+const {
+  buildTokenClaims,
+  signAccessToken,
+  signRefreshToken,
+  verifyRefreshToken,
+} = require("../utils/tokens");
+
 const signUp = async (req, res) => {
   const { username, email, regno, password, confirmpassword } = req.body;
-  console.log(req.body);
   try {
-    // const emailList = allowedEmailsData.allowedEmails;
-    // if (!emailList.includes(email)) {
-    //   return res
-    //     .status(200)
-    //     .json({ error: "User have not enrolled in MFC-VIT" });
-    // }
     if (!username || !email || !regno || !password || !confirmpassword) {
       return res.status(200).json({ error: "All fields are required" });
     }
@@ -54,7 +32,6 @@ const signUp = async (req, res) => {
       email,
     });
 
-    console.log("userAvailable", userAvailable);
 
     if (userAvailable && !userAvailable.verified) {
       await UserModel.deleteOne({ _id: userAvailable._id });
@@ -74,7 +51,6 @@ const signUp = async (req, res) => {
 
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
-    console.log("Hashed Password: ", hashedPassword);
     const isJC = regno.startsWith("25");
     const isSC = !isJC;
 
@@ -98,24 +74,7 @@ const signUp = async (req, res) => {
 
     await sendVerificationMail(savedUser);
 
-    const token = jwt.sign(
-      {
-        id: savedUser._id,
-        username: savedUser.username,
-        email: savedUser.email,
-        regno: savedUser.regno,
-        verified: savedUser.verified,
-        tech: savedUser.tech,
-        design: savedUser.design,
-        management: savedUser.management,
-        admin: savedUser.admin,
-        isJC: savedUser.isJC,
-        isSC: savedUser.isSC,
-        isProfileDone: savedUser.isProfileDone,
-      },
-      process.env.ACCESS_TOKEN_SECERT, //Bro this spelling mistake has ben cascading since generations.... leaving as is
-      { expiresIn: "15d" },
-    );
+    const token = signAccessToken(savedUser);
 
     res.status(200).json({
       token,
@@ -146,7 +105,6 @@ const verifyOTP = async (req, res) => {
       } else {
         const { expiresAt } = user;
         const hashedOTP = user.otp;
-        console.log(hashedOTP, user);
 
         if (expiresAt < Date.now()) {
           await VerificationModel.deleteMany({ user_id: id });
@@ -157,6 +115,15 @@ const verifyOTP = async (req, res) => {
         } else {
           const validOTP = await bcrypt.compare(otp, hashedOTP);
           if (!validOTP) {
+            // A code dies after 5 wrong guesses; the user has to request a new one.
+            user.attempts = (user.attempts || 0) + 1;
+            if (user.attempts >= 5) {
+              await VerificationModel.deleteMany({ user_id: id });
+              return res.status(200).json({
+                message: "Too many wrong attempts. Please request a new OTP.",
+              });
+            }
+            await user.save();
             res
               .status(200)
               .json({ message: "Invalid please check inbox for latest otp" });
@@ -167,16 +134,8 @@ const verifyOTP = async (req, res) => {
             // Signing up is enough to be logged in - hand back a real session
             // here instead of making the user go sign in again.
             const verifiedUser = await UserModel.findById(id);
-            const claims = buildTokenClaims(verifiedUser);
-
-            const token = jwt.sign(claims, process.env.ACCESS_TOKEN_SECERT, {
-              expiresIn: "15d",
-            });
-            const refreshToken = jwt.sign(
-              claims,
-              process.env.ACCESS_TOKEN_SECERT,
-              { expiresIn: "7d" },
-            );
+            const token = signAccessToken(verifiedUser);
+            const refreshToken = signRefreshToken(verifiedUser);
 
             verifiedUser.refreshToken = refreshToken;
             await verifiedUser.save();
@@ -200,7 +159,6 @@ const verifyOTP = async (req, res) => {
         }
       }
 
-      console.log("user", user);
     }
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -247,57 +205,13 @@ const login = async (req, res) => {
       if (!validity) {
         res.status(400).json({ error: "Wrong password" });
       } else {
-        const token = jwt.sign(
-          {
-            id: user._id,
-            username: user.username,
-            email: user.email,
-            regno: user.regno,
-            verified: user.verified,
-            tech: user.tech,
-            design: user.design,
-            management: user.management,
-            admin: user.admin,
-            isProfileDone: user.isProfileDone,
-            isTechDone: user.isTechDone,
-            isManagementDone: user.isManagementDone,
-            isDesignDone: user.isDesignDone,
-            domain: user.domain,
-            isJC: user.isJC,
-            isSC: user.isSC,
-          },
-          process.env.ACCESS_TOKEN_SECERT,
-        );
-
-        const refreshToken = jwt.sign(
-          {
-            id: user._id,
-            username: user.username,
-            email: user.email,
-            regno: user.regno,
-            verified: user.verified,
-            tech: user.tech,
-            design: user.design,
-            management: user.management,
-            admin: user.admin,
-            isProfileDone: user.isProfileDone,
-            isTechDone: user.isTechDone,
-            isManagementDone: user.isManagementDone,
-            isDesignDone: user.isDesignDone,
-            domain: user.domain,
-            isJC: user.isJC,
-            isSC: user.isSC,
-          },
-          process.env.ACCESS_TOKEN_SECERT,
-          { expiresIn: "7d" },
-        );
+        const token = signAccessToken(user);
+        const refreshToken = signRefreshToken(user);
 
         // Save refresh token to user
         user.refreshToken = refreshToken;
         await user.save();
 
-        console.log(`User created login : ${user}`);
-        console.log(`User token login: ${token}`);
         res.status(200).json({
           token,
           refreshToken,
@@ -329,29 +243,18 @@ const login = async (req, res) => {
 };
 
 const refreshToken = async (req, res) => {
-  const { refreshToken } = req.body;
-  let token;
-  let authHeader = req.headers.authorization || req.headers.Authorization;
-
-  if (!authHeader || !authHeader.startsWith("Bearer")) {
-    return res
-      .status(401)
-      .json({ message: "User is not authorized or token missing" });
-  }
-
-  token = authHeader.split(" ")[1];
+  const { refreshToken } = req.body || {};
 
   if (!refreshToken) {
     return res.status(400).json({ message: "refreshToken is required." });
   }
   try {
     const user = await UserModel.findOne({ refreshToken: refreshToken });
-    console.log("user refresh:", user);
     if (!user) {
-      return res.status(404).json({ message: "Invalid refreshToken" });
+      return res.status(401).json({ message: "Invalid refreshToken" });
     }
     try {
-      jwt.verify(refreshToken, process.env.ACCESS_TOKEN_SECERT);
+      verifyRefreshToken(refreshToken);
     } catch (err) {
       user.refreshToken = null;
       await user.save();
@@ -360,30 +263,8 @@ const refreshToken = async (req, res) => {
         .json({ message: "refreshToken expired, please log in again" });
     }
 
-    const newAccessToken = jwt.sign(
-      {
-        id: user._id,
-        username: user.username,
-        email: user.email,
-        regno: user.regno,
-        verified: user.verified,
-        tech: user.tech,
-        design: user.design,
-        management: user.management,
-        admin: user.admin,
-        isProfileDone: user.isProfileDone,
-        isTechDone: user.isTechDone,
-        isManagementDone: user.isManagementDone,
-        isDesignDone: user.isDesignDone,
-        domain: user.domain,
-        isJC: user.isJC,
-        isSC: user.isSC,
-      },
-      process.env.ACCESS_TOKEN_SECERT,
-      { expiresIn: "7d" },
-    );
+    const newAccessToken = signAccessToken(user);
     user.tokenVersion += 1;
-    user.prevAccessToken.push(token);
     await user.save();
 
     res.header("Authorization", `Bearer ${newAccessToken}`);
@@ -402,13 +283,12 @@ const requestPasswordReset = async (req, res) => {
     const user = await UserModel.findOne({ email: email, regno: regno });
 
     if (user) {
-      console.log(user);
-      if (!user.emailToken) {
-        const emailToken = crypto.randomBytes(64).toString("hex");
-        user.emailToken = emailToken;
-        console.log(emailToken);
-        await user.save();
+      // Reuse a still-valid token so double clicks don't invalidate the first mail.
+      if (!user.emailToken || !user.emailTokenExpires || user.emailTokenExpires < Date.now()) {
+        user.emailToken = crypto.randomBytes(64).toString("hex");
       }
+      user.emailTokenExpires = new Date(Date.now() + 60 * 60 * 1000);
+      await user.save();
 
       await sendPasswordResetMail(user);
 
@@ -428,8 +308,11 @@ const requestPasswordReset = async (req, res) => {
 const updatePassword = async (req, res) => {
   const { username, password, emailToken, confirmpassword } = req.body;
   try {
-    const user = await UserModel.findOne({ username, emailToken });
-    console.log(req.body);
+    const user = await UserModel.findOne({
+      username,
+      emailToken,
+      emailTokenExpires: { $gt: new Date() },
+    });
 
     if (user) {
       if (password !== confirmpassword) {
@@ -440,8 +323,8 @@ const updatePassword = async (req, res) => {
       user.password = hashedPass;
       user.verified = true;
       user.emailToken = null;
+      user.emailTokenExpires = null;
       user.refreshToken = null;
-      console.log("user:user", user);
       await user.save();
 
       res.status(200).json({ message: "Password updated successfully." });

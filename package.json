@@ -5,7 +5,8 @@
   "main": "index.js",
   "scripts": {
     "start": "node index.js",
-    "generate": "node api/utils/generateSlots.js"
+    "generate": "node api/utils/generateSlots.js",
+    "smoke": "node scripts/smoke.js"
   },
   "author": "Abhinav Garg",
   "license": "ISC",
@@ -13,8 +14,6 @@
     "bcrypt": "^6.0.0",
     "body-parser": "^1.20.2",
     "cors": "^2.8.5",
-    "cros": "^1.0.1",
-    "crypto": "^1.0.1",
     "dotenv": "^16.4.5",
     "ejs": "^3.1.9",
     "express": "^4.19.2",
