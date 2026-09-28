@@ -19,6 +19,10 @@ const VerificationSchema = new Schema({
   expiresAt: {
     type: Date,
   },
+  attempts: {
+    type: Number,
+    default: 0,
+  },
 });
 
 module.exports = mongoose.model("Verification", VerificationSchema);

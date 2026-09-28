@@ -1,86 +1,20 @@
 const express = require("express");
 const {
-  saveTaskDesign,
-  saveTaskManagement,
-  saveTaskTech,
-  getTaskDesign,
-  getTaskManagement,
-  getTaskTech,
-} = require("../controllers/taskController");
+  getSubmission,
+  saveSubmission,
+} = require("../controllers/submissionController");
 const { rateLimiter_10min_100req } = require("../middleware/ratelimiter");
-const {
-  validateTech,
-  validateManagement,
-  validateDesign,
-} = require("../middleware/validateDomain");
-const app = express();
-
-app.use(express.json());
+const { validateDomainAccess } = require("../middleware/validateDomain");
 
 const router = express.Router();
 
-router.post(
-  "/management/:id",
-  rateLimiter_10min_100req,
-  validateManagement,
-  saveTaskManagement
-);
+const DOMAIN = ":domain(tech|design|management)";
+const checkDomain = (req, res, next) =>
+  validateDomainAccess(req.params.domain)(req, res, next);
 
-router.get(
-  "/management/:id",
-  rateLimiter_10min_100req,
-  validateManagement,
-  getTaskManagement
-);
-
-router.patch(
-  "/management/:id",
-  rateLimiter_10min_100req,
-  validateManagement,
-  saveTaskManagement
-);
-
-router.post(
-  "/tech/:id",
-  rateLimiter_10min_100req,
-  validateTech,
-  saveTaskTech
-);
-
-router.get(
-  "/tech/:id",
-  rateLimiter_10min_100req,
-  validateTech,
-  getTaskTech
-);
-
-router.patch(
-  "/tech/:id",
-  rateLimiter_10min_100req,
-  validateTech,
-  saveTaskTech
-);
-
-router.post(
-  "/design/:id",
-  rateLimiter_10min_100req,
-  validateDesign,
-  saveTaskDesign
-);
-
-router.get(
-  "/design/:id",
-  rateLimiter_10min_100req,
-  validateDesign,
-  getTaskDesign
-);
-
-router.patch(
-  "/design/:id",
-  rateLimiter_10min_100req,
-  validateDesign,
-  saveTaskDesign
-);
+// Same URLs as before (/upload/tech/:id etc.), now backed by one submissions collection.
+router.get(`/${DOMAIN}/:id`, rateLimiter_10min_100req, checkDomain, getSubmission);
+router.patch(`/${DOMAIN}/:id`, rateLimiter_10min_100req, checkDomain, saveSubmission);
+router.post(`/${DOMAIN}/:id`, rateLimiter_10min_100req, checkDomain, saveSubmission);
 
 module.exports = router;
-

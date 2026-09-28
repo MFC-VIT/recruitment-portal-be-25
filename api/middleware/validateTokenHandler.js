@@ -3,7 +3,6 @@ const jwt = require("jsonwebtoken");
 const validateToken = async (req, res, next) => {
   let token;
   let authHeader = req.headers.authorization || req.headers.Authorization;
-  console.log("authHeader", authHeader);
 
   if (!authHeader || !authHeader.startsWith("Bearer")) {
     return res
@@ -18,13 +17,10 @@ const validateToken = async (req, res, next) => {
         return res.status(401).json({ message: "User is not authorized" });
       }
       if (!decoded || !decoded.id) {
-        console.log("Invalid token payload:", decoded);
         return res.status(401).json({ message: "Invalid token payload" });
       }
       const userId = decoded.id;
       if (req.params.id !== userId) {
-        console.log("req.params", req.params);
-        console.log("userId", userId);
         return res
           .status(403)
           .json({ message: "Unauthorized access to user data" });
@@ -33,7 +29,6 @@ const validateToken = async (req, res, next) => {
       next();
     });
   } catch (error) {
-    console.log(error);
     return res.status(401).json({ message: "User is not authorized" });
   }
 };

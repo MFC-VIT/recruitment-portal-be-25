@@ -112,6 +112,9 @@ const UserSchema = new Schema(
     emailToken: {
       type: String,
     },
+    emailTokenExpires: {
+      type: Date,
+    },
     isSC: {
       type: Boolean,
     },

@@ -14,8 +14,6 @@ const validateVerify = async (req, res, next) => {
   try {
     const decoded = jwt.verify(token, process.env.ACCESS_TOKEN_SECERT);
 
-    console.log("decoded", decoded);
-
     const userVerified = decoded.verified;
 
     if (userVerified === false) {
@@ -24,7 +22,6 @@ const validateVerify = async (req, res, next) => {
 
     next();
   } catch (error) {
-    console.log(error);
     return res.status(401).json({ message: "User is not authorized" });
   }
 };

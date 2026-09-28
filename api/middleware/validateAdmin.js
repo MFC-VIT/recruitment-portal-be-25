@@ -1,36 +1,32 @@
 const jwt = require("jsonwebtoken");
+const UserModel = require("../models/userModel");
 
-const validateVerify = async (req, res, next) => {
-  let token;
-  let authHeader = req.headers.authorization || req.headers.Authorization;
+// Admin rights are read from the database, not the token: a token's `admin`
+// claim is only as fresh as the moment it was signed, and older tokens were
+// signed without an expiry.
+const validateAdmin = async (req, res, next) => {
+  const authHeader = req.headers.authorization || req.headers.Authorization;
 
-  if (!authHeader || !authHeader.startsWith("Bearer")) {
+  if (!authHeader || !authHeader.startsWith("Bearer ")) {
     return res
       .status(401)
       .json({ message: "User is not authorized or token missing" });
   }
 
-  token = authHeader.split(" ")[1];
+  const token = authHeader.split(" ")[1];
   try {
     const decoded = jwt.verify(token, process.env.ACCESS_TOKEN_SECERT);
-    const user = decoded;
-    console.log("decoded", decoded);
-    if (!user) {
-      return res.status(404).json({ message: "User not found" });
-    }
-    console.log("user", user);
+    const user = await UserModel.findById(decoded.id).select("admin");
 
-    const userAdmin = decoded.admin;
-    console.log("userAdmin", userAdmin);
-
-    if (userAdmin === false) {
+    if (!user || user.admin !== true) {
       return res.status(403).json({ message: "User not admin" });
     }
 
+    req.userId = String(user._id);
     next();
   } catch (error) {
-    console.log(error);
+    return res.status(401).json({ message: "User is not authorized" });
   }
 };
 
-module.exports = validateVerify;
+module.exports = validateAdmin;
