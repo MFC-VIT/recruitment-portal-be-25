@@ -1,7 +1,5 @@
 const UserModel = require("../models/userModel");
-const TechTask = require("../models/techTaskModel");
-const DesignTask = require("../models/designTaskModel");
-const ManagementTask = require("../models/managementModel");
+const Submission = require("../models/submissionModel");
 const mongoose = require("mongoose");
 const Response = require("../utils/responseModel");
 
@@ -51,18 +49,8 @@ const UpdateUser = async (req, res) => {
     const blocked = [];
     // check each removed domain for completed tasks
     for (const d of removedDomains) {
-      let count = 0;
-      if (d === "tech") {
-        count = await TechTask.countDocuments({ user_id: id, isDone: true });
-      } else if (d === "design") {
-        count = await DesignTask.countDocuments({ user_id: id, isDone: true });
-      } else if (d === "management") {
-        count = await ManagementTask.countDocuments({
-          user_id: id,
-          isDone: true,
-        });
-      }
-      if (count > 0) blocked.push(d);
+      const done = await Submission.exists({ user_id: id, domain: d, isDone: true });
+      if (done) blocked.push(d);
     }
     if (blocked.length > 0) {
       return res
@@ -119,18 +107,8 @@ const UpdateUserDomain = async (req, res) => {
     );
     const blocked = [];
     for (const d of removedDomains) {
-      let count = 0;
-      if (d === "tech") {
-        count = await TechTask.countDocuments({ user_id: id, isDone: true });
-      } else if (d === "design") {
-        count = await DesignTask.countDocuments({ user_id: id, isDone: true });
-      } else if (d === "management") {
-        count = await ManagementTask.countDocuments({
-          user_id: id,
-          isDone: true,
-        });
-      }
-      if (count > 0) blocked.push(d);
+      const done = await Submission.exists({ user_id: id, domain: d, isDone: true });
+      if (done) blocked.push(d);
     }
     if (blocked.length > 0) {
       return res
@@ -164,26 +142,17 @@ const getuser = async (req, res) => {
       },
       {
         $lookup: {
-          from: "techtasks",
+          from: "submissions",
           localField: "_id",
           foreignField: "user_id",
-          as: "techTasks",
+          as: "submissions",
         },
       },
       {
-        $lookup: {
-          from: "designtasks",
-          localField: "_id",
-          foreignField: "user_id",
-          as: "designTasks",
-        },
-      },
-      {
-        $lookup: {
-          from: "managementtasks",
-          localField: "_id",
-          foreignField: "user_id",
-          as: "managementTasks",
+        $addFields: {
+          techTasks: { $filter: { input: "$submissions", cond: { $eq: ["$$this.domain", "tech"] } } },
+          designTasks: { $filter: { input: "$submissions", cond: { $eq: ["$$this.domain", "design"] } } },
+          managementTasks: { $filter: { input: "$submissions", cond: { $eq: ["$$this.domain", "management"] } } },
         },
       },
       {
