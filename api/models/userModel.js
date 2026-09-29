@@ -137,6 +137,15 @@ const UserSchema = new Schema(
       type: String,
       default: null,
     },
+    // Linked GitHub account (Sign in with GitHub on the candidate portal).
+    // token is AES-GCM encrypted, see api/utils/secretBox.js.
+    github: {
+      id: { type: Number, default: null },
+      login: { type: String, default: null },
+      avatarUrl: { type: String, default: null },
+      token: { type: String, default: null, select: false },
+      connectedAt: { type: Date, default: null },
+    },
   },
   { timestamps: true }
 );

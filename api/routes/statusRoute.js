@@ -5,6 +5,7 @@ const {
   applicationDesignStatus,
   applicationManagementStatus,
 } = require("../controllers/statusController");
+const { getTimeline } = require("../controllers/timelineController");
 const validateToken = require("../middleware/validateTokenHandler");
 const { rateLimiter_10min_100req } = require("../middleware/ratelimiter");
 const validateVerify = require("../middleware/validateVerify");
@@ -41,6 +42,14 @@ router.get(
   validateToken,
   validateVerify,
   applicationManagementStatus
+);
+
+router.get(
+  "/timeline/:id",
+  rateLimiter_10min_100req,
+  validateToken,
+  validateVerify,
+  getTimeline
 );
 
 module.exports = router;

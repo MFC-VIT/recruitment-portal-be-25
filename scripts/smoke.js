@@ -23,6 +23,8 @@ const expect = (name, cond, extra) => { console.log(`${cond ? "PASS" : "FAIL"}  
   await new Promise((r) => setTimeout(r, 1500));
   const db = mongoose.connection.db;
   await db.dropDatabase();
+  // Dropping the database also dropped the indexes models built at startup.
+  for (const name of mongoose.modelNames()) await mongoose.model(name).syncIndexes();
   const User = mongoose.model("User");
   const pw = await bcrypt.hash("pass1234", 4);
   const cand = await User.create({ username: "cand", email: "c@x.in", regno: "25BCE0001", password: pw, verified: true, domain: ["tech"], isProfileDone: true });
@@ -114,6 +116,71 @@ const expect = (name, cond, extra) => { console.log(`${cond ? "PASS" : "FAIL"}  
   expect("login limited per account", last.status === 429, last.status);
   r = await call("POST", "/auth/login", { body: { email: "o@x.in", password: "pass1234" } });
   expect("other account on same IP still fine", r.status === 200, r.status);
+
+  // panels
+  const { assignPanel } = require(BE + "/api/meet/panel");
+  const Interviewer = mongoose.model("Interviewer");
+  await Interviewer.insertMany([
+    { name: "T1", email: "t1@x.in", domains: ["tech"], subdomains: ["ml"] },
+    { name: "T2", email: "t2@x.in", domains: ["tech"] },
+    { name: "D1", email: "d1@x.in", domains: ["design"], maxPerDay: 1 },
+    { name: "M1", email: "m1@x.in", domains: ["management"], unavailable: [{ start: new Date(Date.now() + 36e5 * 20), end: new Date(Date.now() + 36e5 * 30) }] },
+  ]);
+  const s1 = new Date(Date.now() + 864e5), e1 = new Date(+s1 + 12e5);
+  const p1 = await assignPanel({ userId: cand._id, domains: ["tech", "design"], subdomains: ["ml"], start: s1, end: e1, size: 2 });
+  expect("panel covers each domain", p1.emails.length === 2 && p1.emails.includes("d1@x.in") && p1.emails.some((e) => e.startsWith("t")), p1);
+  const s2 = new Date(+s1 + 36e5), e2 = new Date(+s2 + 12e5);
+  const p2 = await assignPanel({ userId: other._id, domains: ["design", "management"], start: s2, end: e2, size: 2 });
+  expect("daily cap and unavailability respected", p2.missingDomains.sort().join() === "design,management", p2);
+  const racers = await Promise.all([1, 2, 3].map(() => assignPanel({ userId: admin._id, domains: ["tech"], start: s1, end: e1, size: 1 })));
+  const t1Now = await mongoose.model("PanelAssignment").countDocuments({ email: { $in: ["t1@x.in", "t2@x.in"] }, startTime: s1 });
+  expect("no interviewer double-booked in one slot", t1Now === 2, { t1Now, racers });
+
+  // reminders
+  const { sendDueReminders } = require(BE + "/api/meet/reminders");
+  await mongoose.model("MeetDetails").create({ user_id: other._id, scheduledTime: new Date(Date.now() + 30 * 6e4), endTime: new Date(Date.now() + 50 * 6e4), intervieweremail: ["t1@x.in"] });
+  let mails = 0;
+  const fakeMail = async () => { mails++; };
+  await Promise.all([sendDueReminders({ sendMail: fakeMail }), sendDueReminders({ sendMail: fakeMail })]);
+  expect("reminder sent exactly once", mails === 1, mails);
+  r = await call("POST", "/api/meet/reminders/run");
+  expect("cron endpoint needs secret", r.status === 401, r.status);
+
+  // offers + onboarding
+  await mongoose.model("Setting").create({ key: "onboarding", value: { all: { whatsapp: "https://chat.whatsapp.com/x" }, tech: { discord: "https://discord.gg/y" } } });
+  const Offer = mongoose.model("Offer");
+  const offer = await Offer.create({ user_id: cand._id, domain: "tech" });
+  r = await call("GET", "/offers/mine", { token: candTok });
+  expect("pending offer hides links", r.data.data.length === 1 && r.data.data[0].links === null, r.data);
+  const otherTok = jwt.sign({ id: other._id, verified: true }, "smoke-secret");
+  r = await call("POST", `/offers/${offer._id}/respond`, { token: otherTok, body: { accept: true } });
+  expect("cannot answer someone else's offer", r.status === 409, r.status);
+  r = await call("POST", `/offers/${offer._id}/respond`, { token: candTok, body: { accept: true } });
+  expect("accept reveals merged links and asks for GitHub", r.data.data.links.discord && r.data.data.links.whatsapp && r.data.data.onboarding.github.status === "needs-github", r.data);
+  r = await call("POST", `/offers/${offer._id}/respond`, { token: candTok, body: { accept: false } });
+  expect("offer answered only once", r.status === 409, r.status);
+
+  // timeline
+  await User.updateOne({ _id: cand._id }, { tech: 2 });
+  await mongoose.model("StatusEvent").create([{ user_id: cand._id, domain: "tech", from: 0, to: 1 }, { user_id: cand._id, domain: "tech", from: 1, to: 2, actor: "secret@x.in", note: "internal" }]);
+  r = await call("GET", `/applicatiostatus/timeline/${cand._id}`, { token: candTok });
+  const tl = r.data.domains?.find((d) => d.domain === "tech");
+  expect("timeline shows selected with all stages done", tl && tl.result === "selected" && tl.stages.every((st) => st.state === "done"), r.data);
+  expect("timeline leaks no actor or notes", !JSON.stringify(r.data).includes("secret@x.in") && !JSON.stringify(r.data).includes("internal"));
+  r = await call("GET", `/applicatiostatus/timeline/${other._id}`, { token: candTok });
+  expect("timeline is owner-only", r.status === 403, r.status);
+
+  // push + github
+  r = await call("GET", "/push/key");
+  expect("push key endpoint", r.status === 200 && r.data.enabled === false, r.data);
+  r = await call("POST", "/push/subscribe", { token: candTok, body: { endpoint: "http://evil", keys: {} } });
+  expect("bad push subscription rejected", r.status === 400, r.status);
+  r = await call("POST", "/push/subscribe", { token: candTok, body: { endpoint: "https://fcm.googleapis.com/fcm/send/abc", keys: { p256dh: "k", auth: "a" } } });
+  expect("push subscribe", r.status === 200, r.status);
+  r = await call("GET", "/github/repos", { token: candTok });
+  expect("repos need a linked GitHub", r.status === 400, r.status);
+  r = await call("POST", "/github/connect", { token: candTok, body: { code: "x" } });
+  expect("github connect disabled without config", r.status === 503, r.status);
 
   console.log(fails ? `\n${fails} FAILED` : "\nALL PASS");
   process.exit(fails ? 1 : 0);
