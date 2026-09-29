@@ -9,6 +9,9 @@ const adminRoute = require("./api/routes/adminRoute");
 const statusRoute = require("./api/routes/statusRoute");
 const meetRoute = require("./api/routes/meetRoute");
 const questionRoute = require("./api/routes/questionRoute");
+const pushRoute = require("./api/routes/pushRoute");
+const githubRoute = require("./api/routes/githubRoute");
+const offerRoute = require("./api/routes/offerRoute");
 const connectDb = require("./api/db/dbConnection");
 
 connectDb();
@@ -35,6 +38,22 @@ app.use("/admin", adminRoute);
 app.use("/applicatiostatus", statusRoute);
 app.use("/api/meet", meetRoute);
 app.use("/questions", questionRoute);
+app.use("/push", pushRoute);
+app.use("/github", githubRoute);
+app.use("/offers", offerRoute);
+// In-process reminder sweep every 5 minutes; /api/meet/reminders/run covers
+// the case where the instance is asleep.
+if (process.env.DISABLE_REMINDERS !== "true") {
+  const { sendDueReminders } = require("./api/meet/reminders");
+  const { sendInterviewMail } = require("./api/meet/schedule");
+  const { notifyUser } = require("./api/utils/push");
+  setInterval(() => {
+    sendDueReminders({ sendMail: sendInterviewMail, notify: notifyUser }).catch((err) =>
+      console.error("Reminder sweep failed:", err.message)
+    );
+  }, 5 * 60 * 1000).unref();
+}
+
 app.listen(port, () => {
   console.log(`Server running on port ${port}`);
 });
