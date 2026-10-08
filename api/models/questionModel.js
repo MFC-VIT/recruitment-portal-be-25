@@ -28,8 +28,11 @@ const QuestionSchema = new Schema(
       default: "all",
     },
     kind: { type: String, enum: ["long", "portfolio"], default: "long" },
+    // Short display title shown on the task card (separate from the full prompt).
+    title: { type: String, default: "" },
     prompt: { type: String, required: true },
     helper: { type: String, default: "" },
+    resources: { type: [String], default: [] },
     order: { type: Number, default: 0 },
     maxWords: { type: Number, default: 2000 },
     // What a strong answer looks like. Admin-only; feeds the AI reviewer.
