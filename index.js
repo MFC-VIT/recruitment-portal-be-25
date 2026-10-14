@@ -13,6 +13,7 @@ const pushRoute = require("./api/routes/pushRoute");
 const githubRoute = require("./api/routes/githubRoute");
 const offerRoute = require("./api/routes/offerRoute");
 const connectDb = require("./api/db/dbConnection");
+const { auditActions } = require("./api/utils/audit");
 
 connectDb();
 
@@ -23,6 +24,8 @@ const port = process.env.PORT || 5000;
 app.set("trust proxy", 1);
 app.use(express.json({ limit: "1mb" }));
 app.use(cors());
+// Owner-only activity log of candidate actions (read in the admin portal).
+app.use(auditActions);
 
 // Health Check
 app.get("/ping", (req, res) => {
