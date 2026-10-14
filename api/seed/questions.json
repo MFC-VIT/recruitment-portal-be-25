@@ -47,7 +47,7 @@
     "kind": "long",
     "prompt": "What is npm, and how does a developer use it?",
     "order": 3,
-    "active": true,
+    "active": false,
     "legacyField": "question2"
   },
   {
@@ -59,7 +59,7 @@
     "kind": "long",
     "prompt": "What is the difference between a compiled language and an interpreted language?",
     "order": 4,
-    "active": true,
+    "active": false,
     "legacyField": "question3"
   },
   {
@@ -71,7 +71,7 @@
     "kind": "long",
     "prompt": "Research XOR Linked Lists and explain how they work in your own words.",
     "order": 5,
-    "active": true,
+    "active": false,
     "legacyField": "question4"
   },
   {
@@ -83,7 +83,7 @@
     "kind": "long",
     "prompt": "Suppose you want to hide some data in a multimedia file. What would be your approach?",
     "order": 6,
-    "active": true,
+    "active": false,
     "legacyField": "question5"
   },
   {
@@ -95,7 +95,7 @@
     "kind": "long",
     "prompt": "Explain the difference between symmetric and asymmetric encryption. When would you use each?",
     "order": 7,
-    "active": true,
+    "active": false,
     "legacyField": "question6"
   },
   {
@@ -107,7 +107,7 @@
     "kind": "long",
     "prompt": "What is the difference between supervised and unsupervised learning? Provide an example use case for each.",
     "order": 8,
-    "active": true,
+    "active": false,
     "legacyField": "question7"
   },
   {
@@ -119,7 +119,7 @@
     "kind": "long",
     "prompt": "BrightHive, a fast-growing AI startup, needs a modern logo. After extensive research and iterations, you present a design that the marketing team and COO approve. However, the CEO, Alex, says, \"Something feels off, but I can’t explain why.\" With no clear feedback and a tight deadline, how do you refine the design while ensuring alignment with the company’s vision?",
     "order": 9,
-    "active": true,
+    "active": false,
     "legacyField": "question9"
   },
   {
@@ -131,7 +131,7 @@
     "kind": "long",
     "prompt": "At GoFleet, a logistics platform, you present a redesigned dashboard backed by user data. Midway, senior VP Michael interrupts, saying, \"This looks way more complicated than before.\" His opinion could influence the final decision. With only five minutes to respond, how do you justify your design and keep the project moving forward?",
     "order": 10,
-    "active": true,
+    "active": false,
     "legacyField": "question10"
   },
   {
@@ -143,7 +143,7 @@
     "kind": "long",
     "prompt": "During a usability test for SwiftPay’s bill-splitting feature, a participant, Sophia, repeatedly makes a mistake but dismisses it as \"not paying attention.\" You suspect a UI flaw but can’t make changes yet. How do you confirm if it’s user error or a design issue without influencing the results?",
     "order": 11,
-    "active": true,
+    "active": false,
     "legacyField": "question11"
   },
   {
@@ -155,7 +155,7 @@
     "kind": "long",
     "prompt": "You’re editing a documentary for Echo Films about farmers facing climate change. The most emotional interview, featuring David, is suddenly cut by the producer, Linda, who says, \"The client thinks it’s too bleak.\" Losing it weakens the story. How do you convince Linda to keep the integrity of the film while addressing client concerns?",
     "order": 12,
-    "active": true,
+    "active": false,
     "legacyField": "question12"
   },
   {
@@ -167,7 +167,7 @@
     "kind": "long",
     "prompt": "ViralView, a media company, sends you raw footage for an ad campaign but provides no script, storyboard, or guidance—just a message from the creative director, James: \"Make something great.\" With a tight deadline and unclear expectations, how do you decide on storytelling, editing style, and pacing to ensure the final product impresses?",
     "order": 13,
-    "active": true,
+    "active": false,
     "legacyField": "question13"
   },
   {
@@ -1145,7 +1145,7 @@
     "helper": "Imagine you had to describe your favourite hobby using only visuals. How would you make someone understand what it feels like without explaining it to them?\n\nDesign a website experience that communicates your hobby primarily through visual storytelling, layout, colour, typography, imagery, and thoughtful UI/UX decisions.\n\nRequirements:\n- Choose any hobby you genuinely connect with.\n- Your design should communicate the essence of the hobby without depending heavily on text.\n- Focus on creating a clean, visually appealing, and intuitive user experience.\n- Maintain a consistent visual language throughout the experience.\n- Ensure the layout, hierarchy, navigation, spacing, typography, and overall flow are clear and purposeful.\n- Create enough screens/sections to effectively communicate your concept and user journey.\n\nBonus:\n- Add at least 1 meaningful interaction that contributes to the overall experience.\n- Demonstrate how your design adapts to different screen sizes.\n- Add animations or additional micro-interactions where they meaningfully enhance the experience.\n\nAI is allowed. You may use AI tools for inspiration, ideation, visuals, coding, debugging, or other parts of the process. However, the core concept and design decisions must be your own. We want to see your thinking, not just what an AI tool can generate.\n\nYou do not need to complete the website fully. If your idea is ambitious, you may submit a partially completed prototype or implementation. What matters is how well you communicate your concept, demonstrate your design thinking, and create a clear and engaging user experience.\n\nSubmission: Figma prototype, along with a brief explanation of your concept and key design decisions.\n\nWe evaluate: Visual storytelling, creativity, UI quality, UX and usability, visual consistency, originality, and the thought behind your design decisions.",
     "order": 90,
     "maxWords": 2000,
-    "active": true,
+    "active": false,
     "legacyField": null
   },
   {
