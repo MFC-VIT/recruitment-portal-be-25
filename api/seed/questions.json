@@ -1347,5 +1347,41 @@
     "legacyField": null,
     "title": "Graphic Task (Junior & Senior) — \"About Me\" Page",
     "resources": []
+  },
+  {
+    "key": "tech-task-cp-junior-1",
+    "domain": "tech",
+    "subdomain": "cp",
+    "subdomainLabel": "CP",
+    "audience": "junior",
+    "kind": "long",
+    "title": "CP Contest — MFC Enrollments 27",
+    "prompt": "Take part in the MFC Enrollments 27 competitive programming contest on HackerRank.\n\nContest link: https://www.hackerrank.com/mfc-enrollments27\n\n- Sign in to HackerRank and open the link above. Start and end times are shown on the contest page.\n- Attempt the contest on your own. Collaboration, plagiarism and code sharing are not allowed.\n- Your best score on each problem is the one that counts.\n\nWhen you submit this form, enter your HackerRank username as your answer.",
+    "helper": "Enter your HackerRank username.",
+    "resources": [
+      "https://www.hackerrank.com/mfc-enrollments27"
+    ],
+    "order": 99,
+    "maxWords": 2000,
+    "active": true,
+    "legacyField": null
+  },
+  {
+    "key": "tech-task-cp-senior-1",
+    "domain": "tech",
+    "subdomain": "cp",
+    "subdomainLabel": "CP",
+    "audience": "senior",
+    "kind": "long",
+    "title": "CP Contest — MFC Enrollments 27 (SC)",
+    "prompt": "Take part in the MFC Enrollments 27 competitive programming contest on HackerRank.\n\nContest link: https://www.hackerrank.com/mfc-enrollments27-sc\n\n- Sign in to HackerRank and open the link above. Start and end times are shown on the contest page.\n- Attempt the contest on your own. Collaboration, plagiarism and code sharing are not allowed.\n- Your best score on each problem is the one that counts.\n\nWhen you submit this form, enter your HackerRank username as your answer.",
+    "helper": "Enter your HackerRank username.",
+    "resources": [
+      "https://www.hackerrank.com/mfc-enrollments27-sc"
+    ],
+    "order": 100,
+    "maxWords": 2000,
+    "active": true,
+    "legacyField": null
   }
 ]
