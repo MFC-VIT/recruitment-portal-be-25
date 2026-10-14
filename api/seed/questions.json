@@ -1383,5 +1383,71 @@
     "maxWords": 2000,
     "active": true,
     "legacyField": null
+  },
+  {
+    "key": "tech-task-cybersec-junior-security-challenge-ctf",
+    "domain": "tech",
+    "subdomain": "cyber-sec",
+    "subdomainLabel": "Cyber Security",
+    "audience": "junior",
+    "kind": "long",
+    "title": "Security Challenge: CTF",
+    "prompt": "Use this link to join the CyLab Academy classroom and solve the challenges: https://learn.cylabacademy.org/\n\nClassroom code: CRiNMALYr",
+    "helper": "",
+    "resources": [
+      "https://learn.cylabacademy.org/"
+    ],
+    "order": 101,
+    "maxWords": 2000,
+    "active": true,
+    "legacyField": null
+  },
+  {
+    "key": "tech-task-cybersec-junior-firewall-simulator",
+    "domain": "tech",
+    "subdomain": "cyber-sec",
+    "subdomainLabel": "Cyber Security",
+    "audience": "junior",
+    "kind": "long",
+    "title": "Firewall Simulator",
+    "prompt": "Create a simple firewall simulator.\n\nBase Requirements: 1) Block traffic from specific IPs.\n2) Block/allow specific ports.\n3) Block traffic based on protocol or traffic type.\n4) Maintain a log of all blocked/allowed actions.\n5) Provide a CLI or UI interface to configure rules.\n\nDeliverables: 1) A working script/tool.\n2) A short explanation of firewall logic.\n3) Example test cases",
+    "helper": "",
+    "resources": [],
+    "order": 102,
+    "maxWords": 2000,
+    "active": true,
+    "legacyField": null
+  },
+  {
+    "key": "tech-task-cybersec-senior-web-pentesting-automation-tool",
+    "domain": "tech",
+    "subdomain": "cyber-sec",
+    "subdomainLabel": "Cyber Security",
+    "audience": "senior",
+    "kind": "long",
+    "title": "Web Pentesting Automation Tool",
+    "prompt": "Develop an automated web penetration testing tool to identify SQL Injection, XSS, insecure cookie configurations, and missing security headers within a fictional corporate web environment.\n\nBase Requirements: 1) Vulnerability Detection: Automated scanning for SQLi endpoints and XSS reflection points.\n2) Configuration Audit: Validation of cookie attributes (HttpOnly, Secure, SameSite) and critical security headers (CSP, HSTS, X-Frame-Options).\n3) Targeting Logic: Ability to crawl or receive specific endpoints from the provided fictional company scenario.\n\nDeliverables: 1) Source Code: A functional automation tool (Python, Go, or similar) implementing the detection logic.\n2) Documentation: A brief 'How-to' guide for running the tool against the target scenario.\n3) Pentest Report (Bonus): A structured summary detailing discovered vulnerabilities, severity levels, technical evidence, and remediation steps.",
+    "helper": "",
+    "resources": [],
+    "order": 103,
+    "maxWords": 2000,
+    "active": true,
+    "legacyField": null
+  },
+  {
+    "key": "tech-task-cybersec-senior-ssh-honeypot-and-telemetry-processing",
+    "domain": "tech",
+    "subdomain": "cyber-sec",
+    "subdomainLabel": "Cyber Security",
+    "audience": "senior",
+    "kind": "long",
+    "title": "SSH Honeypot and Telemetry Processing",
+    "prompt": "Build an SSH honeypot to capture attacker interactions and analyze session telemetry for behavioral patterns and bot detection.\n\nBase Requirements: 1) Logging: Record attacker IPs, timestamps, session summaries, and every executed command.\n2) Payload Capture: Extract attempted URLs and malicious scripts/commands.\n3) Telemetry Analysis: Produce insights on IP frequency, common commands, and distinguish between automated bots and human actors.\n\nDeliverables: 1) Source Code: A functional SSH listener and log processing system.\n2) Telemetry Report: A summary of malicious behavior patterns and IP analysis.\n3) Visualizations (Bonus): Charts or graphs representing attack trends and threat metrics.",
+    "helper": "",
+    "resources": [],
+    "order": 104,
+    "maxWords": 2000,
+    "active": true,
+    "legacyField": null
   }
 ]
