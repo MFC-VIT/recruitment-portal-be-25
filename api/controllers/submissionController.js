@@ -90,7 +90,7 @@ const saveSubmission = async (req, res) => {
     }
 
     await Submission.init(); // unique (user, domain) index backs the submit race check
-    const user = await UserModel.findById(id).select("isSC");
+    const user = await UserModel.findById(id).select("isSC regno");
     const questions = await questionsFor(domain, user);
     const { subdomain, answers, errors } = validateAnswers(questions, req.body || {}, isSubmission);
 
