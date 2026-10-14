@@ -2,7 +2,24 @@ const Question = require("../models/questionModel");
 const UserModel = require("../models/userModel");
 const Response = require("../utils/responseModel");
 
-const audienceOf = (user) => (user && user.isSC ? "senior" : "junior");
+const fallbackAudience = (user) => (user && user.isSC ? "senior" : "junior");
+
+// Tech tasks follow the registration year: 26 = junior only, 25 = senior only,
+// 23 and 24 = both. Anything else (and other domains) uses the isSC flag.
+const TECH_AUDIENCE_BY_YEAR = {
+  26: ["junior"],
+  25: ["senior"],
+  24: ["junior", "senior"],
+  23: ["junior", "senior"],
+};
+
+const audiencesOf = (domain, user) => {
+  if (domain === "tech") {
+    const year = Number(String(user?.regno || "").trim().slice(0, 2));
+    if (TECH_AUDIENCE_BY_YEAR[year]) return TECH_AUDIENCE_BY_YEAR[year];
+  }
+  return [fallbackAudience(user)];
+};
 
 // Active questions for a domain that this user should see. Rubrics and the
 // legacy field mapping are admin-only and never leave the server.
@@ -10,7 +27,7 @@ const questionsFor = (domain, user) =>
   Question.find({
     domain,
     active: true,
-    audience: { $in: ["all", audienceOf(user)] },
+    audience: { $in: ["all", ...audiencesOf(domain, user)] },
   })
     .sort({ order: 1 })
     .select("-rubric -legacyField -__v -createdAt -updatedAt")
@@ -28,7 +45,7 @@ const subdomainsOf = (questions) => {
 
 const getQuestions = async (req, res) => {
   try {
-    const user = await UserModel.findById(req.userId).select("isSC");
+    const user = await UserModel.findById(req.userId).select("isSC regno");
     const questions = await questionsFor(req.params.domain, user);
     const response = new Response(
       200,
@@ -43,4 +60,4 @@ const getQuestions = async (req, res) => {
   }
 };
 
-module.exports = { getQuestions, questionsFor, subdomainsOf };
+module.exports = { getQuestions, questionsFor, subdomainsOf, audiencesOf };
