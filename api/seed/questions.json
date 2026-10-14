@@ -1392,9 +1392,11 @@
     "audience": "junior",
     "kind": "long",
     "title": "Security Challenge: CTF",
-    "prompt": "Use this link to code the picoCTF classroom and solve the challenges: CRiNMALYr",
+    "prompt": "Use this link to join the CyLab Academy classroom and solve the challenges: https://learn.cylabacademy.org/\n\nClassroom code: CRiNMALYr",
     "helper": "",
-    "resources": [],
+    "resources": [
+      "https://learn.cylabacademy.org/"
+    ],
     "order": 101,
     "maxWords": 2000,
     "active": true,
