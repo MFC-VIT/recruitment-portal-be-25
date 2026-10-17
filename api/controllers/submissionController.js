@@ -1,4 +1,5 @@
 const Submission = require("../models/submissionModel");
+const Question = require("../models/questionModel");
 const UserModel = require("../models/userModel");
 const Response = require("../utils/responseModel");
 const { questionsFor, subdomainsOf } = require("./questionController");
@@ -84,7 +85,7 @@ const saveSubmission = async (req, res) => {
   const { domain, id } = req.params;
   const isSubmission = req.method === "POST";
   try {
-    const existing = await Submission.findOne({ user_id: id, domain }).select("isDone");
+    const existing = await Submission.findOne({ user_id: id, domain }).select("isDone answers");
     if (existing && existing.isDone) {
       return send(res, 409, null, "This task has already been submitted");
     }
@@ -93,6 +94,17 @@ const saveSubmission = async (req, res) => {
     const user = await UserModel.findById(id).select("isSC regno");
     const questions = await questionsFor(domain, user);
     const { subdomain, answers, errors } = validateAnswers(questions, req.body || {}, isSubmission);
+
+    // Answers to questions retired since the draft was started (active: false)
+    // are no longer shown, so the form never sends them back. Carry them over
+    // so retiring a question does not erase what candidates already wrote.
+    if (existing && existing.answers && existing.answers.size > 0) {
+      const retired = await Question.find({ domain, active: false }).select("key").lean();
+      const retiredKeys = new Set(retired.map((q) => q.key));
+      for (const [key, value] of existing.answers) {
+        if (retiredKeys.has(key) && !(key in answers)) answers[key] = value;
+      }
+    }
 
     if (isSubmission && errors.length > 0) {
       return send(res, 400, { errors }, "Some answers are missing or too long");

@@ -9,7 +9,7 @@
     "prompt": "Your task submissions",
     "helper": "Append all your tech tasks in the following manner:\n[Project Title 1] - [Github Link 1] - [Demo Link 1]\n[Project Title 2] - [Github Link 2] - [Demo Link 2]",
     "order": 0,
-    "active": true,
+    "active": false,
     "legacyField": "question1"
   },
   {
@@ -22,7 +22,7 @@
     "prompt": "Your task submissions",
     "helper": "Add all your design tasks in the following format:\n[Project Title 1] - [Figma / Gdrive / Other Link]\n[Project Title 2] - [Figma / Gdrive / Other Link]",
     "order": 1,
-    "active": true,
+    "active": false,
     "legacyField": "question1"
   },
   {
@@ -35,7 +35,7 @@
     "prompt": "Your task submissions",
     "helper": "Add all your management tasks in the following format:\n[SubDomain] - [Link 1]\n[SubDomain] - [Link 2]",
     "order": 2,
-    "active": true,
+    "active": false,
     "legacyField": "question1"
   },
   {
