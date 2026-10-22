@@ -37,16 +37,21 @@ const allQuestions = async (domain) => {
   return rows;
 };
 
+// The domain-wide portfolio box was replaced by per-task boxes. Treated as
+// retired here so it stays hidden whatever the database says; answers already
+// stored under its key are kept and still shown in the admin portal.
+const isLive = (q) => q.active && q.kind !== "portfolio";
+
 // Active questions for a domain that this user should see. Rubrics and the
 // legacy field mapping are admin-only and never leave the server.
 const questionsFor = async (domain, user) => {
   const audiences = ["all", ...audiencesOf(domain, user)];
-  return (await allQuestions(domain)).filter((q) => q.active && audiences.includes(q.audience));
+  return (await allQuestions(domain)).filter((q) => isLive(q) && audiences.includes(q.audience));
 };
 
 // Keys of questions switched off since a draft was started.
 const retiredKeys = async (domain) =>
-  new Set((await allQuestions(domain)).filter((q) => !q.active).map((q) => q.key));
+  new Set((await allQuestions(domain)).filter((q) => !isLive(q)).map((q) => q.key));
 
 const subdomainsOf = (questions) => {
   const seen = new Map();
