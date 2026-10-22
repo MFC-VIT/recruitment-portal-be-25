@@ -17,6 +17,9 @@ const {
   verifyRefreshToken,
 } = require("../utils/tokens");
 
+// Same shape the signup form checks: batch year, B or M, two letters, four digits.
+const REGNO_PATTERN = /^(26|25|24|23)[BM][A-Z]{2}\d{4}$/;
+
 const signUp = async (req, res) => {
   const { username, email, regno, password, confirmpassword } = req.body;
   try {
@@ -26,6 +29,14 @@ const signUp = async (req, res) => {
 
     if (password !== confirmpassword) {
       return res.status(200).json({ error: "Passwords do not match" });
+    }
+
+    // Batches that can apply: 26 (first years, JC) and 25, 24, 23 (SC).
+    const regnoClean = String(regno).trim().toUpperCase();
+    if (!REGNO_PATTERN.test(regnoClean)) {
+      return res.status(200).json({
+        error: "Registration number must start with 26, 25, 24 or 23 (for example 26BCE1234).",
+      });
     }
 
     const userAvailable = await UserModel.findOne({
@@ -51,13 +62,14 @@ const signUp = async (req, res) => {
 
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
-    const isJC = regno.startsWith("25");
+    // 26 = first years (JC); 25, 24 and 23 are SC.
+    const isJC = regnoClean.startsWith("26");
     const isSC = !isJC;
 
     const newUser = new UserModel({
       username,
       email,
-      regno,
+      regno: regnoClean,
       password: hashedPassword,
       verified: false,
       tech: 0,

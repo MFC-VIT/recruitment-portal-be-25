@@ -13,8 +13,7 @@ const pushRoute = require("./api/routes/pushRoute");
 const githubRoute = require("./api/routes/githubRoute");
 const offerRoute = require("./api/routes/offerRoute");
 const connectDb = require("./api/db/dbConnection");
-
-connectDb();
+const { auditActions } = require("./api/utils/audit");
 
 const app = express();
 const port = process.env.PORT || 5000;
@@ -23,12 +22,27 @@ const port = process.env.PORT || 5000;
 app.set("trust proxy", 1);
 app.use(express.json({ limit: "1mb" }));
 app.use(cors());
+// Owner-only activity log of candidate actions (read in the admin portal).
+app.use(auditActions);
 
 // Health Check
 app.get("/ping", (req, res) => {
   const response = new Response(200, null, "pong", true);
   res.status(response.statusCode).json(response);
 });
+
+// Hold every other request until MongoDB is connected instead of letting
+// queries buffer for 10s and then fail.
+app.use(async (req, res, next) => {
+  try {
+    await connectDb();
+    next();
+  } catch (err) {
+    console.error("Database connect failed:", err.message);
+    res.status(503).json({ message: "Server is busy, please try again in a moment." });
+  }
+});
+connectDb().catch((err) => console.error("Database connect failed:", err.message));
 
 // Core Routes
 app.use("/auth", authRoute);
