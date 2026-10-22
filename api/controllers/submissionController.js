@@ -1,8 +1,7 @@
 const Submission = require("../models/submissionModel");
-const Question = require("../models/questionModel");
 const UserModel = require("../models/userModel");
 const Response = require("../utils/responseModel");
-const { questionsFor, subdomainsOf } = require("./questionController");
+const { questionsFor, retiredKeys, subdomainsOf } = require("./questionController");
 
 const DONE_FLAG = {
   tech: "isTechDone",
@@ -10,6 +9,10 @@ const DONE_FLAG = {
   management: "isManagementDone",
 };
 const MAX_CHARS = 20000;
+
+// Builds the unique (user, domain) index once, not on every request; it backs
+// the submit race check.
+Submission.init().catch((err) => console.error("Submission index build failed:", err.message));
 
 const send = (res, statusCode, data, message) => {
   const response = new Response(statusCode, data, message, statusCode < 400);
@@ -100,8 +103,8 @@ const saveSubmission = async (req, res) => {
       return send(res, 409, null, "This task has already been submitted");
     }
 
-    await Submission.init(); // unique (user, domain) index backs the submit race check
-    const user = await UserModel.findById(id).select("isSC regno");
+    // validateDomain already loaded the user; fall back for direct callers.
+    const user = req.userDoc || (await UserModel.findById(id).select("isSC regno"));
     const questions = await questionsFor(domain, user);
     const { subdomain, answers, errors } = validateAnswers(questions, req.body || {}, isSubmission);
 
@@ -109,10 +112,9 @@ const saveSubmission = async (req, res) => {
     // are no longer shown, so the form never sends them back. Carry them over
     // so retiring a question does not erase what candidates already wrote.
     if (existing && existing.answers && existing.answers.size > 0) {
-      const retired = await Question.find({ domain, active: false }).select("key").lean();
-      const retiredKeys = new Set(retired.map((q) => q.key));
+      const retired = await retiredKeys(domain);
       for (const [key, value] of existing.answers) {
-        if (retiredKeys.has(key) && !(key in answers)) answers[key] = value;
+        if (retired.has(key) && !(key in answers)) answers[key] = value;
       }
     }
 
