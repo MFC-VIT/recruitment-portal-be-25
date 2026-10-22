@@ -15,8 +15,6 @@ const offerRoute = require("./api/routes/offerRoute");
 const connectDb = require("./api/db/dbConnection");
 const { auditActions } = require("./api/utils/audit");
 
-connectDb();
-
 const app = express();
 const port = process.env.PORT || 5000;
 
@@ -32,6 +30,19 @@ app.get("/ping", (req, res) => {
   const response = new Response(200, null, "pong", true);
   res.status(response.statusCode).json(response);
 });
+
+// Hold every other request until MongoDB is connected instead of letting
+// queries buffer for 10s and then fail.
+app.use(async (req, res, next) => {
+  try {
+    await connectDb();
+    next();
+  } catch (err) {
+    console.error("Database connect failed:", err.message);
+    res.status(503).json({ message: "Server is busy, please try again in a moment." });
+  }
+});
+connectDb().catch((err) => console.error("Database connect failed:", err.message));
 
 // Core Routes
 app.use("/auth", authRoute);
