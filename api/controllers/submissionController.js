@@ -71,9 +71,19 @@ const validateAnswers = (questions, body, isSubmission) => {
 
   if (isSubmission) {
     if (subdomain.length === 0) errors.push({ key: "subdomain", error: "Pick at least one subdomain." });
+    // Titled questions are tasks: one answered task per picked subdomain is
+    // enough. Everything else (the general questions) must be answered.
+    const isTask = (q) => Boolean(q.title && q.subdomain);
     for (const q of visible) {
+      if (isTask(q)) continue;
       if (!answers[q.key] && !errors.some((e) => e.key === q.key)) {
         errors.push({ key: q.key, error: "This question needs an answer." });
+      }
+    }
+    for (const sub of subdomain) {
+      const tasks = visible.filter((q) => isTask(q) && q.subdomain === sub);
+      if (tasks.length > 0 && !tasks.some((q) => answers[q.key])) {
+        errors.push({ key: tasks[0].key, error: "Complete at least one task for this subdomain." });
       }
     }
   }
