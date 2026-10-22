@@ -27,7 +27,7 @@ const validateDomainAccess = (domain) => async (req, res, next) => {
   }
 
   try {
-    const user = await userModel.findById(decoded.id).select("domain verified");
+    const user = await userModel.findById(decoded.id).select("domain verified isSC regno");
 
     if (!user) {
       return res.status(404).json({ message: "User not found" });
@@ -35,6 +35,7 @@ const validateDomainAccess = (domain) => async (req, res, next) => {
 
     if (user.verified === true && user.domain && user.domain.includes(domain)) {
       req.userId = String(user._id);
+      req.userDoc = user;
       return next();
     }
     return res
