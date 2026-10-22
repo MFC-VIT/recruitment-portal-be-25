@@ -1,3 +1,4 @@
+const mongoose = require("mongoose");
 const AuditLog = require("../models/auditLogModel");
 const UserModel = require("../models/userModel");
 
@@ -68,6 +69,11 @@ const auditActions = (req, res, next) => {
   res.end = function patchedEnd(...args) {
     res.end = originalEnd;
     const finish = () => originalEnd.apply(res, args);
+    // No connection: the insert would buffer for 10s and stall the reply.
+    if (mongoose.connection.readyState !== 1) {
+      finish();
+      return res;
+    }
     const path = `${req.baseUrl}${req.path}`;
     if (SKIP.some((r) => r.method === req.method && r.path.test(path))) {
       finish();
