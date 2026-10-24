@@ -21,17 +21,37 @@ const audiencesOf = (domain, user) => {
   return [fallbackAudience(user)];
 };
 
-// Active questions for a domain that this user should see. Rubrics and the
-// legacy field mapping are admin-only and never leave the server.
-const questionsFor = (domain, user) =>
-  Question.find({
-    domain,
-    active: true,
-    audience: { $in: ["all", ...audiencesOf(domain, user)] },
-  })
+// Every draft save and page load needs the question list, and it only changes
+// when an admin edits it, so keep it for a minute instead of querying each time.
+const CACHE_MS = 60 * 1000;
+const cache = new Map();
+
+const allQuestions = async (domain) => {
+  const hit = cache.get(domain);
+  if (hit && Date.now() - hit.at < CACHE_MS) return hit.rows;
+  const rows = await Question.find({ domain })
     .sort({ order: 1 })
     .select("-rubric -legacyField -__v -createdAt -updatedAt")
     .lean();
+  cache.set(domain, { at: Date.now(), rows });
+  return rows;
+};
+
+// The domain-wide portfolio box was replaced by per-task boxes. Treated as
+// retired here so it stays hidden whatever the database says; answers already
+// stored under its key are kept and still shown in the admin portal.
+const isLive = (q) => q.active && q.kind !== "portfolio";
+
+// Active questions for a domain that this user should see. Rubrics and the
+// legacy field mapping are admin-only and never leave the server.
+const questionsFor = async (domain, user) => {
+  const audiences = ["all", ...audiencesOf(domain, user)];
+  return (await allQuestions(domain)).filter((q) => isLive(q) && audiences.includes(q.audience));
+};
+
+// Keys of questions switched off since a draft was started.
+const retiredKeys = async (domain) =>
+  new Set((await allQuestions(domain)).filter((q) => !isLive(q)).map((q) => q.key));
 
 const subdomainsOf = (questions) => {
   const seen = new Map();
@@ -60,4 +80,4 @@ const getQuestions = async (req, res) => {
   }
 };
 
-module.exports = { getQuestions, questionsFor, subdomainsOf, audiencesOf };
+module.exports = { getQuestions, questionsFor, retiredKeys, subdomainsOf, audiencesOf };
